@@ -243,6 +243,7 @@ export function KanbanBoard() {
       onDragOver={onDragOver}
     >
       <BoardContainer>
+        
         <SortableContext items={columnsId}>
           {columns.map((col) => (
             <BoardColumn
