@@ -72,8 +72,8 @@ export function BoardColumn({ column, tasks, isOverlay }: BoardColumnProps) {
     <Card
       ref={setNodeRef}
       style={style}
-      className={variants({
-        dragging: isOverlay ? "overlay" : isDragging ? "over" : undefined,
+      className={variants({ 
+        dragging: isOverlay ? "overlay" : isDragging ? "over" : undefined, 
       })}
     >
       <CardHeader className="p-4 font-semibold border-b-2 text-left flex flex-row space-between items-center">
@@ -88,17 +88,18 @@ export function BoardColumn({ column, tasks, isOverlay }: BoardColumnProps) {
         </Button>
         <span className="ml-auto"> {column.title}</span>
       </CardHeader>
-      <ScrollArea>
-        {/* scroll below title */}
-
-        <CardContent className="flex flex-grow flex-col gap-2 p-2">
-          <SortableContext items={tasksIds}>
-            {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
-          </SortableContext>
-        </CardContent>
-      </ScrollArea>
+      
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <CardContent className="flex flex-col gap-2 p-2 bg-red-500 ">
+            <SortableContext items={tasksIds}>
+              {tasks.map((task) => (
+                <TaskCard key={task.id} task={task} />
+              ))}
+            </SortableContext>
+          </CardContent>
+        </ScrollArea>
+      </div>
     </Card>
   );
 }
@@ -121,7 +122,7 @@ export function BoardContainer({ children }: { children: React.ReactNode }) {
         dragging: dndContext.active ? "active" : "default",
       })}
     >
-      <div className="flex gap-4 items-center flex-row justify-center">
+      <div className="flex gap-4 items-start flex-row justify-center">
         {children}
       </div>
       <ScrollBar orientation="horizontal" />
