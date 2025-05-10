@@ -1,3 +1,4 @@
+"use client";
 
 import { LayoutGrid, List, ChevronDown } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";

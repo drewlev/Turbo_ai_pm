@@ -122,7 +122,7 @@ export function KanbanBoard() {
     useSensor(MouseSensor),
     useSensor(TouchSensor),
     useSensor(KeyboardSensor, {
-    //   coordinateGetter: coordinateGetter,
+      //   coordinateGetter: coordinateGetter,
     })
   );
 
@@ -243,7 +243,6 @@ export function KanbanBoard() {
       onDragOver={onDragOver}
     >
       <BoardContainer>
-        
         <SortableContext items={columnsId}>
           {columns.map((col) => (
             <BoardColumn
