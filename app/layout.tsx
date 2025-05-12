@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/sonner";
 // import { SessionProvider } from "next-auth/react";
 
 const geistSans = Geist({
@@ -44,6 +45,7 @@ export default function RootLayout({
           {children}
           {/* </SidebarInset> */}
           {/* </SidebarProvider> */}
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>
