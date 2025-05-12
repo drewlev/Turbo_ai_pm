@@ -1,14 +1,7 @@
 "use server";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NewTask from "@/components/new-task";
-import {
-  Clipboard,
-  Map,
-  UserPlus,
-  HelpCircle,
-  GalleryVerticalEnd,
-  AudioWaveform,
-} from "lucide-react";
+import { Clipboard, Map, UserPlus, HelpCircle } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -25,51 +18,43 @@ import { UserButton } from "@clerk/nextjs";
 
 import { NavMain } from "@/components/nav-main";
 import { getActiveProjects } from "@/app/actions/projects";
-
+import { getUsers } from "@/app/actions/users";
 
 const projects = await getActiveProjects();
 const listProjects = projects.map((project) => ({
   title: project.name,
   url: `/app/projects/${project.id}`,
+  id: project.id,
+}));
+
+// users to view and assign tasks
+const users = await getUsers();
+const listUsers = users.map((user) => ({
+  title: user.name || user.email,
+  url: `/app/users/${user.id}`,
+  id: user.id,
 }));
 
 console.log("listProjects", listProjects);
 
 const data = {
-  
   navMain: [
     {
       title: "Projects",
       url: "#",
-      // icon: SquareTerminal,
-      isActive: true,
+      // isActive: true,
       items: listProjects,
     },
     {
       title: "Team",
       url: "#",
-      // icon: Users,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
+      // isActive: false,
+      items: listUsers,
     },
-
   ],
 };
 
 export async function AppSidebar() {
-
   return (
     <Sidebar className="border-r border-[#2c2d3c] bg-[#181921] text-[#d2d3e0]">
       <SidebarHeader className="border-b border-[#2c2d3c]">
@@ -81,7 +66,7 @@ export async function AppSidebar() {
           </Avatar>
         </div>
 
-        <NewTask />
+        <NewTask assignee={listUsers} projects={listProjects} />
 
         <SidebarMenu className="bg-[#181921]">
           <SidebarMenuItem>

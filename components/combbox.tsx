@@ -27,13 +27,14 @@ export interface Option {
 
 interface ComboboxProps {
   options: Option[];
-  value: string;
-  onValueChange: (value: string) => void;
+  value: string | string[];
+  onValueChange: (value: string | string[]) => void;
   placeholder?: string;
   emptyMessage?: string;
   searchPlaceholder?: string;
   className?: string;
   trigger?: React.ReactNode;
+  multiSelect?: boolean;
 }
 
 export function Combobox({
@@ -45,9 +46,19 @@ export function Combobox({
   searchPlaceholder = "Search...",
   className,
   trigger,
+  multiSelect = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
-  const selectedOption = options.find((option) => option.value === value);
+  const selectedOptions = multiSelect
+    ? options.filter((option) => (value as string[]).includes(option.value))
+    : [options.find((option) => option.value === value)].filter(Boolean);
+
+  const displayValue =
+    selectedOptions.length > 0
+      ? multiSelect
+        ? `${selectedOptions.length} selected`
+        : selectedOptions[0]?.label ?? placeholder
+      : placeholder;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -60,8 +71,8 @@ export function Combobox({
             className={cn("w-[200px] justify-between", className)}
           >
             <div className="flex items-center">
-              {selectedOption?.icon}
-              <span>{selectedOption?.label || placeholder}</span>
+              {!multiSelect && selectedOptions[0]?.icon}
+              <span>{displayValue}</span>
             </div>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -78,15 +89,29 @@ export function Combobox({
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
-                    onValueChange(currentValue === value ? "" : currentValue);
-                    setOpen(false);
+                    if (multiSelect) {
+                      const currentValues = value as string[];
+                      const newValues = currentValues.includes(currentValue)
+                        ? currentValues.filter((v) => v !== currentValue)
+                        : [...currentValues, currentValue];
+                      onValueChange(newValues);
+                    } else {
+                      onValueChange(currentValue === value ? "" : currentValue);
+                      setOpen(false);
+                    }
                   }}
                 >
                   <div className="flex items-center">
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        value === option.value ? "opacity-100" : "opacity-0"
+                        multiSelect
+                          ? (value as string[]).includes(option.value)
+                            ? "opacity-100"
+                            : "opacity-0"
+                          : value === option.value
+                          ? "opacity-100"
+                          : "opacity-0"
                       )}
                     />
                     {option.icon}

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { createTask } from "@/app/actions/tasks";
 import {
   X,
   MoreHorizontal,
@@ -20,6 +21,71 @@ import {
 } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Combobox, Option } from "@/components/combbox";
+import { cn } from "@/lib/utils";
+
+type Assignee = {
+  label: string;
+  url: string;
+  id: number;
+};
+
+const StackedInitials = ({ assignees }: { assignees: Assignee[] }) => {
+  if (!assignees || assignees.length === 0) return null;
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // For single assignee - simple circle with initials
+  if (assignees.length === 1) {
+    const initials = getInitials(assignees[0].label);
+    return (
+      <div
+        className={cn(
+          "flex items-center justify-center",
+          "w-6 h-6",
+          "rounded-full",
+          "bg-blue-600 text-white",
+          "text-xs font-semibold"
+        )}
+      >
+        {initials}
+      </div>
+    );
+  }
+
+  // For multiple assignees - overlapping circles
+  return (
+    <div className="flex -space-x-2 rtl:space-x-reverse">
+      {assignees.slice(0, 2).map((assignee, idx) => (
+        <div
+          key={assignee.id}
+          className={cn(
+            "flex items-center justify-center rounded-full text-xs font-semibold border-[1.5px] border-[#121212]",
+            idx === 0 ? "bg-blue-600 text-white" : "bg-green-600 text-white",
+            "w-6 h-6"
+          )}
+          style={{ zIndex: 10 - idx }}
+        >
+          {getInitials(assignee.label)}
+        </div>
+      ))}
+      {assignees.length > 2 && (
+        <div
+          className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-600 text-white text-xs font-semibold border-[1.5px] border-[#121212]"
+          style={{ zIndex: 8 }}
+        >
+          +{assignees.length - 2}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const low = <span className="mr-1 bg-green-500 rounded-full w-2 h-2"></span>;
 
@@ -35,31 +101,27 @@ const priorityOptions: Option[] = [
   { value: "low", label: "Low", icon: low },
 ];
 
-const projectOptions: Option[] = [
-  { value: "project1", label: "Project 1", icon: high },
-  { value: "project2", label: "Project 2", icon: medium },
-  { value: "project3", label: "Project 3", icon: low },
-];
-
-const assigneeOptions: Option[] = [
-  { value: "user1", label: "John Doe", icon: high },
-  { value: "user2", label: "Jane Smith", icon: medium },
-  { value: "user3", label: "Bob Johnson", icon: low },
-];
-
 export default function TaskModal({
   open,
   onOpenChange,
+  assignee,
+  projects,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  assignee: { title: string; url: string; id: number }[];
+  projects: { title: string; url: string; id: number }[];
 }) {
   const [createMore, setCreateMore] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("");
-  const [project, setProject] = useState("");
-  const [assignee, setAssignee] = useState("");
+  const [project, setProject] = useState<{ url: string; id: number } | null>(
+    null
+  );
+  const [assigneeValue, setAssigneeValue] = useState<
+    { url: string; id: number }[]
+  >([]);
 
   useEffect(() => {
     if (!open) {
@@ -67,10 +129,20 @@ export default function TaskModal({
       setDescription("");
       setCreateMore(false);
       setPriority("");
-      setProject("");
-      setAssignee("");
+      setProject(null);
+      setAssigneeValue([]);
     }
   }, [open]);
+
+  const assigneeOptions: Option[] = assignee.map((user) => ({
+    value: user.id.toString(),
+    label: user.title,
+  }));
+
+  const projectOptions: Option[] = projects.map((project) => ({
+    value: project.id.toString(),
+    label: project.title,
+  }));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -114,7 +186,7 @@ export default function TaskModal({
             <Combobox
               options={priorityOptions}
               value={priority}
-              onValueChange={setPriority}
+              onValueChange={(value) => setPriority(value as string)}
               trigger={
                 <Button
                   variant="outline"
@@ -144,25 +216,45 @@ export default function TaskModal({
             />
             <Combobox
               options={assigneeOptions}
-              value={assignee}
-              onValueChange={setAssignee}
+              value={assigneeValue.map((a) => a.id.toString())}
+              multiSelect={true}
+              onValueChange={(value) => {
+                const selectedIds = value as string[];
+                const selectedAssignees = selectedIds
+                  .map((id) => {
+                    const option = assigneeOptions.find(
+                      (opt) => opt.value === id
+                    );
+                    return option ? { url: id, id: parseInt(id) } : null;
+                  })
+                  .filter((a): a is { url: string; id: number } => a !== null);
+                setAssigneeValue(selectedAssignees);
+              }}
               trigger={
                 <Button
                   variant="outline"
                   size="sm"
                   className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
                 >
-                  {assignee ? (
+                  {assigneeValue.length > 0 ? (
                     <>
-                      {
-                        assigneeOptions.find((opt) => opt.value === assignee)
-                          ?.icon
-                      }
-                      <span>
-                        {
-                          assigneeOptions.find((opt) => opt.value === assignee)
-                            ?.label
-                        }
+                      <StackedInitials
+                        assignees={assigneeValue.map((id) => ({
+                          label:
+                            assigneeOptions.find(
+                              (opt) => opt.value === id.id.toString()
+                            )?.label || "",
+                          url: id.url,
+                          id: id.id,
+                        }))}
+                      />
+                      <span className="ml-2">
+                        {assigneeValue.length === 1
+                          ? assigneeOptions.find(
+                              (opt) =>
+                                opt.value === assigneeValue[0].id.toString()
+                            )?.label
+                          : `${assigneeValue.length} assignees`}
                       </span>
                     </>
                   ) : (
@@ -178,8 +270,17 @@ export default function TaskModal({
             />
             <Combobox
               options={projectOptions}
-              value={project}
-              onValueChange={setProject}
+              value={project?.id.toString() || ""}
+              onValueChange={(value) => {
+                const option = projectOptions.find(
+                  (opt) => opt.value === (value as string)
+                );
+                setProject(
+                  option
+                    ? { url: value as string, id: parseInt(value as string) }
+                    : null
+                );
+              }}
               trigger={
                 <Button
                   variant="outline"
@@ -189,13 +290,15 @@ export default function TaskModal({
                   {project ? (
                     <>
                       {
-                        projectOptions.find((opt) => opt.value === project)
-                          ?.icon
+                        projectOptions.find(
+                          (opt) => opt.value === project.id.toString()
+                        )?.icon
                       }
                       <span>
                         {
-                          projectOptions.find((opt) => opt.value === project)
-                            ?.label
+                          projectOptions.find(
+                            (opt) => opt.value === project.id.toString()
+                          )?.label
                         }
                       </span>
                     </>
@@ -245,7 +348,20 @@ export default function TaskModal({
                   Create more
                 </label>
               </div> */}
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() =>
+                  createTask([
+                    {
+                      title,
+                      description,
+                      priority,
+                      projectId: project?.id,
+                      assigneeID: assigneeValue.map((a) => a.id),
+                    },
+                  ])
+                }
+              >
                 Create Task
               </Button>
             </div>

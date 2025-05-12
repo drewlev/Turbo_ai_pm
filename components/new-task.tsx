@@ -5,7 +5,13 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import TaskModal from "./task-dialog";
 
-export default function NewTask() {
+export default function NewTask({
+  assignee,
+  projects,
+}: {
+  assignee: { title: string; url: string; id: number }[];
+  projects: { title: string; url: string; id: number }[];
+}) {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
 
   return (
@@ -18,7 +24,12 @@ export default function NewTask() {
         <Plus className="h-4 w-4" />
         New Task
       </Button>
-      <TaskModal open={taskModalOpen} onOpenChange={setTaskModalOpen} />
+      <TaskModal
+        open={taskModalOpen}
+        onOpenChange={setTaskModalOpen}
+        assignee={assignee}
+        projects={projects}
+      />
     </div>
   );
 }
