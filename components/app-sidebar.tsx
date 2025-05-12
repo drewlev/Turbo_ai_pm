@@ -2,12 +2,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  ChevronDown,
   Plus,
   Clipboard,
   Map,
-  Grid3X3,
-  Layers,
   UserPlus,
   HelpCircle,
   GalleryVerticalEnd,
@@ -30,17 +27,11 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
-
+import TaskModal from "@/components/task-dialog";
 import { NavMain } from "@/components/nav-main";
-import {
-  Command,
-  SquareTerminal,
-  Bot,
-  BookOpen,
-  Settings2,
-  Frame,
-  PieChart,
-} from "lucide-react";
+import { Command, SquareTerminal, Users } from "lucide-react";
+import { useState } from "react";
+
 const data = {
   user: {
     name: "shadcn",
@@ -88,7 +79,7 @@ const data = {
     {
       title: "Team",
       url: "#",
-      icon: Bot,
+      icon: Users,
       items: [
         {
           title: "Genesis",
@@ -172,6 +163,8 @@ const data = {
 };
 
 export function AppSidebar() {
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+
   return (
     <Sidebar className="border-r border-[#2c2d3c] bg-[#181921] text-[#d2d3e0]">
       <SidebarHeader className="border-b border-[#2c2d3c]">
@@ -187,10 +180,12 @@ export function AppSidebar() {
           <Button
             variant="outline"
             className="w-full justify-start gap-2 bg-[#272832] border-[#4c4f6b] text-white"
+            onClick={() => setTaskModalOpen(true)}
           >
             <Plus className="h-4 w-4" />
             New Task
           </Button>
+          <TaskModal open={taskModalOpen} onOpenChange={setTaskModalOpen} />
         </div>
 
         <SidebarMenu className="bg-[#181921]">
@@ -233,7 +228,6 @@ export function AppSidebar() {
             <SidebarMenuButton className="text-[#d2d3e0]">
               <HelpCircle className="h-4 w-4" />
               <span>Help & Support</span>
-              
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
