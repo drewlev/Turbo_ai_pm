@@ -21,6 +21,9 @@ import {
   Paperclip,
   MessageSquare,
   Users,
+  CheckCircle,
+  Clock,
+  Check,
 } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Combobox, Option } from "@/components/combbox";
@@ -45,6 +48,12 @@ const priorityOptions: Option[] = [
   { value: "high", label: "High", icon: high },
   { value: "medium", label: "Medium", icon: medium },
   { value: "low", label: "Low", icon: low },
+];
+
+const statusOptions: Option[] = [
+  { value: "todo", label: "To Do", icon: <CheckCircle /> },
+  { value: "in_progress", label: "In Progress", icon: <Clock /> },
+  { value: "done", label: "Done", icon: <Check /> },
 ];
 
 const PriorityButton = ({
@@ -82,6 +91,43 @@ const PriorityButton = ({
     />
   );
 };
+
+const StatusButton = ({
+    status,
+    onValueChange,
+  }: {
+    status: string;
+    onValueChange: (value: string) => void;
+  }) => {
+    return (
+      <Combobox
+        options={statusOptions}
+        value={status}
+        onValueChange={(value) => onValueChange(value as string)}
+        trigger={
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
+          >
+            {status ? (
+              <>
+                {statusOptions.find((opt) => opt.value === status)?.icon}
+                <span>
+                  {statusOptions.find((opt) => opt.value === status)?.label}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="mr-1"></span> Status
+              </>
+            )}
+          </Button>
+        }
+      />
+    );
+  };
+  
 
 const DateButton = ({
   date,
@@ -244,6 +290,7 @@ const TaskActions = ({
   priority,
   project,
   assigneeValue,
+  date,
 }: {
   onCreateTask: () => void;
   title: string;
@@ -251,6 +298,7 @@ const TaskActions = ({
   priority: string;
   project: { url: string; id: number } | null;
   assigneeValue: { url: string; id: number }[];
+  date?: string;
 }) => {
   return (
     <div className="flex items-center justify-between">
@@ -299,6 +347,7 @@ export default function TaskModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("");
+  const [status, setStatus] = useState("");
   const [project, setProject] = useState<{ url: string; id: number } | null>(
     null
   );
@@ -344,6 +393,7 @@ export default function TaskModal({
         priority: validatedData.priority,
         projectId: validatedData.projectId,
         assigneeID: validatedData.assigneeIds,
+        dueDate: date ? new Date(date) : undefined,
       });
 
       toast.success("Task created successfully!");
@@ -403,6 +453,7 @@ export default function TaskModal({
                 setAssigneeValue(selectedAssignees);
               }}
             />
+            <StatusButton status={status} onValueChange={setStatus} />
             <ProjectButton
               project={project}
               projectOptions={projectOptions}
@@ -437,6 +488,7 @@ export default function TaskModal({
             priority={priority}
             project={project}
             assigneeValue={assigneeValue}
+            date={date}
           />
         </div>
       </DialogContent>

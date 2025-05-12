@@ -25,6 +25,16 @@ export const projects = pgTable("projects", {
   status: text("status"),
 });
 
+export const meetings = pgTable("meetings", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  transcript: text("transcript"),
+  projectId: integer("project_id").references(() => projects.id),
+});
+
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -40,8 +50,12 @@ export const tasks = pgTable("tasks", {
 export const taskAssignees = pgTable(
   "task_assignees",
   {
-    taskId: integer("task_id").references(() => tasks.id),
-    userId: integer("user_id").references(() => users.id),
+    taskId: integer("task_id")
+      .notNull() // Explicitly set NOT NULL
+      .references(() => tasks.id),
+    userId: integer("user_id")
+      .notNull() // Explicitly set NOT NULL
+      .references(() => users.id),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
