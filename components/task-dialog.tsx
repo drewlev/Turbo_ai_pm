@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { createTask, createTaskAndAssign } from "@/app/actions/tasks";
 import { toast } from "sonner";
 import { StackedInitials } from "@/components/stacked-avatars";
-
+import { DatePicker } from "@/components/date-picker";
 import {
   X,
   MoreHorizontal,
@@ -81,6 +81,16 @@ const PriorityButton = ({
       }
     />
   );
+};
+
+const DateButton = ({
+  date,
+  onValueChange,
+}: {
+  date: string;
+  onValueChange: (value: string) => void;
+}) => {
+  return <DatePicker date={date} onValueChange={onValueChange} />;
 };
 
 const AssigneeButton = ({
@@ -295,7 +305,7 @@ export default function TaskModal({
   const [assigneeValue, setAssigneeValue] = useState<
     { url: string; id: number }[]
   >([]);
-
+  const [date, setDate] = useState("");
   useEffect(() => {
     if (!open) {
       setTitle("");
@@ -417,8 +427,9 @@ export default function TaskModal({
             >
               <MoreHorizontal className="w-3 h-3" />
             </Button>
+            <DateButton date={date} onValueChange={setDate} />
           </div>
-
+         
           <TaskActions
             onCreateTask={handleCreateTask}
             title={title}
