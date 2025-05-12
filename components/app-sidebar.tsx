@@ -1,8 +1,7 @@
-"use client";
+"use server";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import NewTask from "@/components/new-task";
 import {
-  Plus,
   Clipboard,
   Map,
   UserPlus,
@@ -16,70 +15,40 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
-import TaskModal from "@/components/task-dialog";
+
 import { NavMain } from "@/components/nav-main";
-import { Command, SquareTerminal, Users } from "lucide-react";
-import { useState } from "react";
+import { getActiveProjects } from "@/app/actions/projects";
+
+
+const projects = await getActiveProjects();
+const listProjects = projects.map((project) => ({
+  title: project.name,
+  url: `/app/projects/${project.id}`,
+}));
+
+console.log("listProjects", listProjects);
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
+  
   navMain: [
     {
       title: "Projects",
       url: "#",
-      icon: SquareTerminal,
+      // icon: SquareTerminal,
       isActive: true,
-      items: [
-        {
-          title: "Rally",
-          url: "#",
-        },
-        {
-          title: "Ramp",
-          url: "#",
-        },
-        {
-          title: "Jeep",
-          url: "#",
-        },
-      ],
+      items: listProjects,
     },
     {
       title: "Team",
       url: "#",
-      icon: Users,
+      // icon: Users,
       items: [
         {
           title: "Genesis",
@@ -96,74 +65,10 @@ const data = {
       ],
     },
 
-    //   {
-    //     title: "Documentation",
-    //     url: "#",
-    //     icon: BookOpen,
-    //     items: [
-    //       {
-    //         title: "Introduction",
-    //         url: "#",
-    //       },
-    //       {
-    //         title: "Get Started",
-    //         url: "#",
-    //       },
-    //       {
-    //         title: "Tutorials",
-    //         url: "#",
-    //       },
-    //       {
-    //         title: "Changelog",
-    //         url: "#",
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     title: "Settings",
-    //     url: "#",
-    //     icon: Settings2,
-    //     items: [
-    //       {
-    //         title: "General",
-    //         url: "#",
-    //       },
-    //       {
-    //         title: "Team",
-    //         url: "#",
-    //       },
-    //       {
-    //         title: "Billing",
-    //         url: "#",
-    //       },
-    //       {
-    //         title: "Limits",
-    //         url: "#",
-    //       },
-    //     ],
-    //   },
-    // ],
-    // projects: [
-    //   {
-    //     name: "Design Engineering",
-    //     url: "#",
-    //     icon: Frame,
-    //   },
-    //   {
-    //     name: "Sales & Marketing",
-    //     url: "#",
-    //     icon: PieChart,
-    //   },
-    //   {
-    //     name: "Travel",
-    //     url: "#",
-    //     icon: Map,
-    //   },
   ],
 };
 
-export function AppSidebar() {
-  const [taskModalOpen, setTaskModalOpen] = useState(false);
+export async function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-[#2c2d3c] bg-[#181921] text-[#d2d3e0]">
@@ -176,17 +81,7 @@ export function AppSidebar() {
           </Avatar>
         </div>
 
-        <div className="px-4 py-2">
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2 bg-[#272832] border-[#4c4f6b] text-white"
-            onClick={() => setTaskModalOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            New Task
-          </Button>
-          <TaskModal open={taskModalOpen} onOpenChange={setTaskModalOpen} />
-        </div>
+        <NewTask />
 
         <SidebarMenu className="bg-[#181921]">
           <SidebarMenuItem>

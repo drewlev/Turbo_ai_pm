@@ -17,6 +17,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
+import { Command, SquareTerminal, Users } from "lucide-react";
 
 export function NavMain({
   items,
@@ -32,6 +33,9 @@ export function NavMain({
     }[]
   }[]
 }) {
+
+  
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>

@@ -22,6 +22,7 @@ export const projects = pgTable("projects", {
   description: text("description"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  status: text("status"),
 });
 
 export const tasks = pgTable("tasks", {
@@ -36,14 +37,16 @@ export const tasks = pgTable("tasks", {
   dueDate: timestamp("due_date"),
 });
 
-export const taskAssignees = pgTable("task_assignees", {
-  taskId: integer("task_id").references(() => tasks.id),
-  userId: integer("user_id").references(() => users.id),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-}, (table) => [
-  primaryKey({ columns: [table.taskId, table.userId] }),
-]);
+export const taskAssignees = pgTable(
+  "task_assignees",
+  {
+    taskId: integer("task_id").references(() => tasks.id),
+    userId: integer("user_id").references(() => users.id),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.taskId, table.userId] })]
+);
 
 // Relations
 
