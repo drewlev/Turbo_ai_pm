@@ -1,4 +1,4 @@
-"use client";
+"use server";
 
 import { LayoutGrid, List, ChevronDown } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -6,31 +6,28 @@ import { Button } from "@/components/ui/button";
 import { TaskTable } from "@/components/table";
 import { KanbanBoard } from "@/components/kanban-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getTasks } from "@/app/actions/tasks";
 
-const tasks = [
-  {
-    id: "task-1",
-    title: "Todo",
-    emoji: "👋",
-    date: "12 Mar",
-    assignedTo: {
-      name: "User",
-      avatar: "/placeholder.svg?height=24&width=24",
-    },
-  },
-  {
-    id: "task-2",
-    title: "Welcome to Turbo AI PM",
-    emoji: "👋",
-    date: "12 Mar",
-    assignedTo: {
-      name: "User",
-      avatar: "/placeholder.svg?height=24&width=24",
-    },
-  },
-];
-
-export default function TaskManagementApp() {
+export default async function TaskManagementApp() {
+  const tasks = await getTasks();
+  const transformedTasks = tasks.map((task) => ({
+    id: task.id.toString(),
+    title: task.title,
+    date: task.dueDate?.toISOString(),
+    assignedTo: task.taskAssignees
+      ?.map((ta) =>
+        ta.user
+          ? {
+              label: ta.user.name || "",
+              url: ta.user.id.toString(),
+              id: ta.user.id,
+            }
+          : null
+      )
+      .filter(
+        (a): a is { label: string; url: string; id: number } => a !== null
+      ),
+  }));
   return (
     <Tabs defaultValue="table" className="w-full gap-0">
       <header className="h-14 border-b border-[var(--border-dark)] flex items-center px-4 justify-between">
@@ -68,7 +65,11 @@ export default function TaskManagementApp() {
 
       <main className="flex h-[calc(100vh-3.5rem)] p-4 overflow-auto bg-[var(--background-dark)]">
         <TabsContent value="table">
-          <TaskTable tasks={tasks} title="Todo" count={tasks.length} />
+          <TaskTable
+            tasks={transformedTasks}
+            title="Todo"
+            count={tasks.length}
+          />
         </TabsContent>
         <TabsContent value="kanban">
           <KanbanBoard />

@@ -2,6 +2,8 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { StackedInitials } from "@/components/stacked-avatars";
+import { tasks } from "@/app/db/schema";
 import {
   ColumnDef,
   flexRender,
@@ -25,9 +27,10 @@ interface Task {
   title: string;
   date?: string;
   assignedTo?: {
-    name: string;
-    avatar?: string;
-  };
+    label: string;
+    url: string;
+    id: number;
+  }[];
 }
 
 interface TaskTableProps {
@@ -78,12 +81,7 @@ const columns: ColumnDef<Task>[] = [
     header: "Assigned",
     cell: ({ row }) => {
       const assignedTo = row.getValue("assignedTo") as Task["assignedTo"];
-      return assignedTo ? (
-        <Avatar className="h-6 w-6">
-          <AvatarImage src={assignedTo.avatar} alt={assignedTo.name} />
-          <AvatarFallback>{assignedTo.name[0]}</AvatarFallback>
-        </Avatar>
-      ) : null;
+      return assignedTo ? <StackedInitials assignees={assignedTo} /> : null;
     },
   },
 ];

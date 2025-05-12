@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { createTask } from "@/app/actions/tasks";
+import { createTask, createTaskAndAssign } from "@/app/actions/tasks";
 import { toast } from "sonner";
+import { StackedInitials } from "@/components/stacked-avatars";
 
 import {
   X,
@@ -30,64 +31,6 @@ type Assignee = {
   label: string;
   url: string;
   id: number;
-};
-
-const StackedInitials = ({ assignees }: { assignees: Assignee[] }) => {
-  if (!assignees || assignees.length === 0) return null;
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  // For single assignee - simple circle with initials
-  if (assignees.length === 1) {
-    const initials = getInitials(assignees[0].label);
-    return (
-      <div
-        className={cn(
-          "flex items-center justify-center",
-          "w-6 h-6",
-          "rounded-full",
-          "bg-blue-600 text-white",
-          "text-xs font-semibold"
-        )}
-      >
-        {initials}
-      </div>
-    );
-  }
-
-  // For multiple assignees - overlapping circles
-  return (
-    <div className="flex -space-x-2 rtl:space-x-reverse">
-      {assignees.slice(0, 2).map((assignee, idx) => (
-        <div
-          key={assignee.id}
-          className={cn(
-            "flex items-center justify-center rounded-full text-xs font-semibold border-[1.5px] border-[#121212]",
-            idx === 0 ? "bg-blue-600 text-white" : "bg-green-600 text-white",
-            "w-6 h-6"
-          )}
-          style={{ zIndex: 10 - idx }}
-        >
-          {getInitials(assignee.label)}
-        </div>
-      ))}
-      {assignees.length > 2 && (
-        <div
-          className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-600 text-white text-xs font-semibold border-[1.5px] border-[#121212]"
-          style={{ zIndex: 8 }}
-        >
-          +{assignees.length - 2}
-        </div>
-      )}
-    </div>
-  );
 };
 
 const low = <span className="mr-1 bg-green-500 rounded-full w-2 h-2"></span>;
@@ -385,15 +328,13 @@ export default function TaskModal({
 
       const validatedData = taskFormSchema.parse(formData);
 
-      createTask([
-        {
-          title: validatedData.title,
-          description: validatedData.description,
-          priority: validatedData.priority,
-          projectId: validatedData.projectId,
-          assigneeID: validatedData.assigneeIds,
-        },
-      ]);
+      createTaskAndAssign({
+        title: validatedData.title,
+        description: validatedData.description,
+        priority: validatedData.priority,
+        projectId: validatedData.projectId,
+        assigneeID: validatedData.assigneeIds,
+      });
 
       toast.success("Task created successfully!");
       onOpenChange(false);
