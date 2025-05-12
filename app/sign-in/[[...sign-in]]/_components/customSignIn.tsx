@@ -1,9 +1,10 @@
 "use client";
 
-import { useSignIn, useSignUp, useAuth, useClerk } from "@clerk/nextjs";
+import { useSignIn, useAuth, useClerk } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,11 +13,11 @@ import BackgroundPaths from "@/components/backgroundPaths";
 // import { FcGoogle } from "react-icons/fc";
 
 export function LoginForm({
+  setIsSignUp,
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div"> & { setIsSignUp: (isSignUp: boolean) => void }) {
   const { signIn } = useSignIn();
-  const { signUp } = useSignUp();
   const { isSignedIn, isLoaded } = useAuth();
   const { setActive } = useClerk();
   const router = useRouter();
@@ -25,13 +26,12 @@ export function LoginForm({
   const [code, setCode] = useState("");
   const [showCodeInput, setShowCodeInput] = useState(false);
   const [error, setError] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
 
   useEffect(() => {
-    console.log("Auth state changed:", { isLoaded, isSignedIn });
-  }, [isLoaded, isSignedIn]);
-
-  console.log("isSignedIn", isSignedIn, isSignUp);
+    if (isLoaded && isSignedIn) {
+      router.push("/app");
+    }
+  }, [isLoaded, isSignedIn, router]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,26 +40,45 @@ export function LoginForm({
 
     try {
       if (signIn) {
-        console.log("Attempting to sign in with email:", email);
         await signIn.create({
-          strategy: "email_code",
           identifier: email,
+          strategy: "email_code",
         });
-        setIsSignUp(false);
+
+        if (!signIn.supportedFirstFactors) {
+          throw new Error("No supported first factors found");
+        }
+
+        const emailFactor = signIn.supportedFirstFactors.find(
+          (factor) => factor.strategy === "email_code"
+        );
+
+        if (!emailFactor?.emailAddressId) {
+          throw new Error("Email verification is not available");
+        }
+
+        await signIn.prepareFirstFactor({
+          strategy: "email_code",
+          emailAddressId: emailFactor.emailAddressId,
+        });
+
         setShowCodeInput(true);
       }
-    } catch (err) {
-      console.log("Sign in failed, attempting sign up", err);
-      try {
-        if (signUp) {
-          await signUp.create({ emailAddress: email });
-          await signUp.prepareEmailAddressVerification();
-          setIsSignUp(true);
-          setShowCodeInput(true);
-        }
-      } catch (signUpErr) {
-        console.error("Sign up failed", signUpErr);
-        setError("Failed to process your email. Please try again.");
+    } catch (err: any) {
+      console.error("Sign in failed", err);
+
+      // Check for user not found error
+      if (
+        err.errors?.some(
+          (e: any) =>
+            e.code === "form_identifier_not_found" ||
+            e.message?.includes("identifier not found")
+        )
+      ) {
+        // User doesn't exist, redirect to sign up
+        router.push(`/sign-up?email=${encodeURIComponent(email)}`);
+      } else {
+        setError("Failed to sign in. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -72,15 +91,7 @@ export function LoginForm({
     setError("");
 
     try {
-      if (isSignUp && signUp) {
-        const result = await signUp.attemptEmailAddressVerification({ code });
-
-        if (result.status === "complete") {
-          await setActive({ session: result.createdSessionId });
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          router.push("/app");
-        }
-      } else if (!isSignUp && signIn) {
+      if (signIn) {
         const result = await signIn.attemptFirstFactor({
           strategy: "email_code",
           code,
@@ -88,7 +99,6 @@ export function LoginForm({
 
         if (result.status === "complete") {
           await setActive({ session: result.createdSessionId });
-          await new Promise((resolve) => setTimeout(resolve, 1000));
           router.push("/app");
         }
       }
@@ -130,83 +140,56 @@ export function LoginForm({
             <div className="p-6 md:p-8">
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col items-center text-center">
-                  <h1 className="text-2xl font-bold">Welcome back To </h1>
+                  <h1 className="text-2xl font-bold">Welcome Back</h1>
                   <p className="text-balance text-muted-foreground">
                     {showCodeInput
                       ? "Enter your verification code"
-                      : "Sign in with your email"}
+                      : "Sign in to your account"}
                   </p>
                 </div>
 
-                {!showCodeInput ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full flex items-center justify-center gap-2"
-                      onClick={handleGoogleSignIn}
-                    >
-                      {/* <FcGoogle className="h-5 w-5" /> */}
-                      Continue with Google
-                    </Button>
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full flex items-center justify-center gap-2"
+                    onClick={handleGoogleSignIn}
+                  >
+                    {/* <FcGoogle className="h-5 w-5" /> */}
+                    Continue with Google
+                  </Button>
 
-                    {/* <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                          Or continue with
-                        </span>
-                      </div>
-                    </div> */}
+                  {/* <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase"></div>
+                  </div> */}
 
-                    <form onSubmit={handleEmailSubmit} className="space-y-4">
-                      <Input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? "Sending code..." : "Continue"}
-                      </Button>
-                    </form>
-                  </>
-                ) : (
-                  <form onSubmit={handleCodeSubmit} className="space-y-4">
-                    <Input
-                      type="text"
-                      placeholder="Enter verification code"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      required
-                    />
+                  {/* <form onSubmit={handleEmailSubmit} className="space-y-4">
                     <Button
                       type="submit"
                       className="w-full"
                       disabled={isLoading}
                     >
-                      {isLoading ? "Verifying..." : "Verify Code"}
+                      {isLoading ? "Processing..." : "Sign In"}
                     </Button>
-                  </form>
-                )}
+                  </form> */}
+                </>
 
                 {error && (
                   <p className="text-sm text-red-500 text-center">{error}</p>
                 )}
 
                 <div className="text-center text-sm">
-                  Don&apos;t have an account? No worries!
-                  <br />
-                  Just enter your email to get started.
+                  Already have an account?{" "}
+                  <Button
+                    className="font-medium text-primary"
+                    onClick={() => setIsSignUp(false)}
+                  >
+                    Sign in
+                  </Button>
                 </div>
-
                 <div id="clerk-captcha" />
               </div>
             </div>

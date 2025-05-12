@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-import { useClerk } from "@clerk/nextjs";
+import { AuthenticateWithRedirectCallback } from "@clerk/nextjs";
 
 export default function SSOCallback() {
-  const { handleRedirectCallback } = useClerk();
-
-  useEffect(() => {
-    handleRedirectCallback({ redirectUrl: window.location.href });
-  }, [handleRedirectCallback]);
-
-  return null;
+  return (
+    <AuthenticateWithRedirectCallback
+      signInForceRedirectUrl="/app"
+      signUpForceRedirectUrl="/app"
+    />
+  );
 }

@@ -27,16 +27,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider >
+    <ClerkProvider
+      appearance={{
+        elements: {
+          cardFooter: "hidden",
+        },
+      }}
+    >
       <html lang="en">
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           {/* <SidebarProvider> */}
-            {/* <AppSidebar /> */}
-            {/* <SidebarInset className="bg-[#181921] text-[#d2d3e0]"> */}
-              {children}
-            {/* </SidebarInset> */}
+          {/* <AppSidebar /> */}
+          {/* <SidebarInset className="bg-[#181921] text-[#d2d3e0]"> */}
+          {children}
+          {/* </SidebarInset> */}
           {/* </SidebarProvider> */}
         </body>
       </html>
