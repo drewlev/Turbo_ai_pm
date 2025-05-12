@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StackedInitials } from "@/components/stacked-avatars";
 import { tasks } from "@/app/db/schema";
+import { StatusButton } from "@/components/status-button";
 import {
   ColumnDef,
   flexRender,
@@ -31,6 +32,7 @@ interface Task {
     url: string;
     id: number;
   }[];
+  status: string;
 }
 
 interface TaskTableProps {
@@ -62,6 +64,14 @@ const columns: ColumnDef<Task>[] = [
     enableHiding: false,
   },
   {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as Task["status"];
+      return <StatusButton status={status} onValueChange={() => {}} />;
+    },
+  },
+  {
     accessorKey: "title",
     header: "Task",
     cell: ({ row }) => <div>{row.getValue("title")}</div>,
@@ -88,7 +98,7 @@ const columns: ColumnDef<Task>[] = [
 
 export function TaskTable({ tasks, title, count }: TaskTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-
+  console.log(tasks);
   const table = useReactTable({
     data: tasks,
     columns,

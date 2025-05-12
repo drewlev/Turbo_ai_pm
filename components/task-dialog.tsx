@@ -1,5 +1,5 @@
 "use client";
-
+import { StatusButton } from "@/components/status-button";
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -92,42 +92,7 @@ const PriorityButton = ({
   );
 };
 
-const StatusButton = ({
-    status,
-    onValueChange,
-  }: {
-    status: string;
-    onValueChange: (value: string) => void;
-  }) => {
-    return (
-      <Combobox
-        options={statusOptions}
-        value={status}
-        onValueChange={(value) => onValueChange(value as string)}
-        trigger={
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
-          >
-            {status ? (
-              <>
-                {statusOptions.find((opt) => opt.value === status)?.icon}
-                <span>
-                  {statusOptions.find((opt) => opt.value === status)?.label}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="mr-1"></span> Status
-              </>
-            )}
-          </Button>
-        }
-      />
-    );
-  };
-  
+
 
 const DateButton = ({
   date,
@@ -480,7 +445,7 @@ export default function TaskModal({
             </Button>
             <DateButton date={date} onValueChange={setDate} />
           </div>
-         
+
           <TaskActions
             onCreateTask={handleCreateTask}
             title={title}

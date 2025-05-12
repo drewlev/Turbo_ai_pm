@@ -14,6 +14,7 @@ export default async function TaskManagementApp() {
     id: task.id.toString(),
     title: task.title,
     date: task.dueDate?.toISOString(),
+    status: task.status,
     assignedTo: task.taskAssignees
       ?.map((ta) =>
         ta.user
