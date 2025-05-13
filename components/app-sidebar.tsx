@@ -76,10 +76,10 @@ export async function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-[#d2d3e0]">
+            {/* <SidebarMenuButton className="text-[#d2d3e0]">
               <Map className="h-4 w-4" />
               <span>Roadmaps</span>
-            </SidebarMenuButton>
+            </SidebarMenuButton> */}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

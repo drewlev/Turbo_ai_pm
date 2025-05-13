@@ -92,8 +92,6 @@ const PriorityButton = ({
   );
 };
 
-
-
 const DateButton = ({
   date,
   onValueChange,
@@ -320,6 +318,8 @@ export default function TaskModal({
     { url: string; id: number }[]
   >([]);
   const [date, setDate] = useState("");
+  const [taskId, setTaskId] = useState<number | null>(null);
+
   useEffect(() => {
     if (!open) {
       setTitle("");
@@ -340,7 +340,7 @@ export default function TaskModal({
     label: project.title,
   }));
 
-  const handleCreateTask = () => {
+  const handleCreateTask = async () => {
     try {
       const formData: TaskFormData = {
         title,
@@ -352,7 +352,7 @@ export default function TaskModal({
 
       const validatedData = taskFormSchema.parse(formData);
 
-      createTaskAndAssign({
+      const result = await createTaskAndAssign({
         title: validatedData.title,
         description: validatedData.description,
         priority: validatedData.priority,
@@ -361,8 +361,13 @@ export default function TaskModal({
         dueDate: date ? new Date(date) : undefined,
       });
 
-      toast.success("Task created successfully!");
-      onOpenChange(false);
+      if (result.success && result.taskId) {
+        setTaskId(result.taskId);
+        toast.success("Task created successfully!");
+        onOpenChange(false);
+      } else {
+        throw new Error("Failed to create task");
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessages = error.errors.map((err) => err.message).join("\n");
@@ -371,6 +376,10 @@ export default function TaskModal({
         toast.error("Failed to create task");
       }
     }
+  };
+
+  const handleStatusUpdated = (taskId: number, newStatus: string) => {
+    setStatus(newStatus);
   };
 
   return (
@@ -418,7 +427,13 @@ export default function TaskModal({
                 setAssigneeValue(selectedAssignees);
               }}
             />
-            <StatusButton status={status} onValueChange={setStatus} />
+            {taskId && (
+              <StatusButton
+                status={status}
+                taskId={taskId}
+                onStatusUpdated={handleStatusUpdated}
+              />
+            )}
             <ProjectButton
               project={project}
               projectOptions={projectOptions}

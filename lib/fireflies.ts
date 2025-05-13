@@ -73,6 +73,9 @@ type TranscriptResponse = {
   };
 };
 
+// TODO: Move to .env
+const apiKey = "cbf9223d-454c-4e6f-8fa7-37a053dcf65c";
+
 
 async function fetchFirefliesTranscript(
   transcriptId: string

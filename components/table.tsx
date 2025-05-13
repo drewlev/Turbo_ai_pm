@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
-
+import { daysOutDisplayer } from "@/lib/date-and-time";
 interface Task {
   id: string;
   title: string;
@@ -68,7 +68,13 @@ const columns: ColumnDef<Task>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as Task["status"];
-      return <StatusButton status={status} onValueChange={() => {}} />;
+      return (
+        <StatusButton
+          status={status}
+          taskId={parseInt(row.original.id)}
+          onStatusUpdated={() => {}}
+        />
+      );
     },
   },
   {
@@ -82,7 +88,9 @@ const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => {
       const date = row.getValue("date") as string;
       return date ? (
-        <div className="text-xs text-[var(--text-secondary)]">{date}</div>
+        <div className="text-xs text-[var(--text-secondary)]">
+          {daysOutDisplayer({ dateString: date })}
+        </div>
       ) : null;
     },
   },

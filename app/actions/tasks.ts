@@ -3,12 +3,14 @@
 import db from "@/app/db";
 import { tasks, taskAssignees, users } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export type TaskWithAssigneesType = typeof tasks.$inferSelect & {
-    taskAssignees: (typeof taskAssignees.$inferSelect & { // Include taskAssignee data...
-      user: typeof users.$inferSelect; // ...and the nested user data
-    })[];
-  };
+  taskAssignees: (typeof taskAssignees.$inferSelect & {
+    // Include taskAssignee data...
+    user: typeof users.$inferSelect; // ...and the nested user data
+  })[];
+};
 
 // Get all tasks
 export async function getTasks(): Promise<TaskWithAssigneesType[]> {
@@ -21,7 +23,7 @@ export async function getTasks(): Promise<TaskWithAssigneesType[]> {
       },
     },
   });
-  return tasks ;
+  return tasks;
 }
 
 // get taks based on project id
@@ -65,6 +67,27 @@ export async function createTask(task: InsertTask) {
   } catch (error: any) {
     console.error("Error creating task:", error);
     throw new Error(`Failed to create task: ${error.message}`); // Re-throw for consistent error handling
+  }
+}
+
+export async function updateTask(taskId: number, taskData: Partial<InsertTask>) {
+    console.log("Updating task:", taskId, taskData);
+    try {
+      const [updatedTask] = await db
+        .update(tasks)
+        .set(taskData) // Use the provided taskData directly
+        .where(eq(tasks.id, taskId))
+        .returning();
+  
+      if (!updatedTask) {
+        console.error(`Failed to update task ${taskId}`);
+        return null; // Or throw an error if you prefer
+      }
+      revalidatePath("/"); // Revalidate the relevant path
+      return updatedTask;
+    } catch (error: any) {
+      console.error("Error updating task:", error);
+    throw new Error(`Failed to update task: ${error.message}`);
   }
 }
 

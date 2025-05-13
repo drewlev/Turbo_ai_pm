@@ -1,6 +1,10 @@
+// components/status-button.tsx
+"use client";
+
 import { CheckCircle, Circle, LoaderCircle, CircleAlert } from "lucide-react";
 import { Combobox } from "./combbox";
 import { Button } from "./ui/button";
+import { updateTask } from "@/app/actions/tasks";
 
 type Option = {
   value: string;
@@ -14,7 +18,7 @@ const statusOptions: Option[] = [
     value: "in_progress",
     label: "In Progress",
     icon: <LoaderCircle className="animate-spin slow-spin" />,
-  }, // Added animate-spin
+  },
   {
     value: "needs_review",
     label: "Needs Review",
@@ -29,16 +33,32 @@ const statusOptions: Option[] = [
 
 export const StatusButton = ({
   status,
-  onValueChange,
+  taskId,
+  onStatusUpdated,
 }: {
   status: string;
-  onValueChange: (value: string) => void;
+  taskId: number;
+  onStatusUpdated: (taskId: number, newStatus: string) => void;
 }) => {
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      const updatedTask = await updateTask(taskId, {
+        status: newStatus,
+      });
+      if (updatedTask) {
+        onStatusUpdated(taskId, newStatus);
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      // Optionally, update local state to reflect an error
+    }
+  };
+
   return (
     <Combobox
       options={statusOptions}
       value={status}
-      onValueChange={(value) => onValueChange(value as string)}
+      onValueChange={(value) => handleStatusChange(value as string)}
       trigger={
         <Button
           variant="outline"
