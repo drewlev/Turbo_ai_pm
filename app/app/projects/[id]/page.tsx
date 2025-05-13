@@ -1,3 +1,4 @@
+'use server'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectHeader } from "@/app/app/projects/[id]/components/project-header";
 import { SnapshotSummary } from "@/app/app/projects/[id]/components/snapshot-summary";
@@ -5,8 +6,10 @@ import { TasksSection } from "@/app/app/projects/[id]/components/task-section";
 import { DeliverablesFeed } from "@/app/app/projects/[id]/components/deliverables-feed";
 import { MeetingsSummary } from "@/app/app/projects/[id]/components/meeting-summary";
 import { SlackActivity } from "@/app/app/projects/[id]/components/slack-activity";
+import { getTasksByProjectId } from "@/app/actions/tasks";
 
-export default function Dashboard() {
+export default async function Dashboard({ params }: { params: { id: string } }) {
+  const tasks = await getTasksByProjectId(Number(params.id));
   return (
     <div className="flex min-h-screen bg-[var(--background-dark)]">
       {/* Main Content */}
@@ -52,8 +55,8 @@ export default function Dashboard() {
             </TabsList>
 
             <TabsContent value="snapshot" className="mt-8 space-y-8">
-              <SnapshotSummary />
-              <TasksSection />
+              <SnapshotSummary  />
+              <TasksSection  tasks={tasks}/>
               <DeliverablesFeed />
               <MeetingsSummary />
               <SlackActivity />

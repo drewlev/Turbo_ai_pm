@@ -4,7 +4,14 @@ import db from "@/app/db";
 import { tasks, taskAssignees, users } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 
-export async function getTasks() {
+export type TaskWithAssigneesType = typeof tasks.$inferSelect & {
+    taskAssignees: (typeof taskAssignees.$inferSelect & { // Include taskAssignee data...
+      user: typeof users.$inferSelect; // ...and the nested user data
+    })[];
+  };
+
+// Get all tasks
+export async function getTasks(): Promise<TaskWithAssigneesType[]> {
   const tasks = await db.query.tasks.findMany({
     with: {
       taskAssignees: {
@@ -14,7 +21,24 @@ export async function getTasks() {
       },
     },
   });
-  return tasks;
+  return tasks ;
+}
+
+// get taks based on project id
+export async function getTasksByProjectId(
+  projectId: number
+): Promise<TaskWithAssigneesType[]> {
+  const projectTasks = await db.query.tasks.findMany({
+    where: eq(tasks.projectId, projectId),
+    with: {
+      taskAssignees: {
+        with: {
+          user: true,
+        },
+      },
+    },
+  });
+  return projectTasks;
 }
 
 type InsertTask = typeof tasks.$inferInsert & {

@@ -7,28 +7,12 @@ import { TaskTable } from "@/components/table";
 import { KanbanBoard } from "@/components/kanban-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getTasks } from "@/app/actions/tasks";
+import { transformTasksForUI } from "@/app/types/task";
 
 export default async function TaskManagementApp() {
   const tasks = await getTasks();
-  const transformedTasks = tasks.map((task) => ({
-    id: task.id.toString(),
-    title: task.title,
-    date: task.dueDate?.toISOString(),
-    status: task.status,
-    assignedTo: task.taskAssignees
-      ?.map((ta) =>
-        ta.user
-          ? {
-              label: ta.user.name || "",
-              url: ta.user.id.toString(),
-              id: ta.user.id,
-            }
-          : null
-      )
-      .filter(
-        (a): a is { label: string; url: string; id: number } => a !== null
-      ),
-  }));
+  const transformedTasks = transformTasksForUI(tasks);
+
   return (
     <Tabs defaultValue="table" className="w-full gap-0">
       <header className="h-14 border-b border-[var(--border-dark)] flex items-center px-4 justify-between">

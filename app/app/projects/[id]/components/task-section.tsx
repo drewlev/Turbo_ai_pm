@@ -8,12 +8,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { List, LayoutGrid } from "lucide-react";
 import { TaskTable } from "@/components/table";
 import { KanbanBoard } from "@/components/kanban-board";
+import { TaskWithAssigneesType } from "@/app/actions/tasks";
+import { transformTasksForUI } from "@/app/types/task";
 
-export function TasksSection() {
+export function TasksSection({ tasks }: { tasks: TaskWithAssigneesType[] }) {
+  const transformedTasks = transformTasksForUI(tasks);
+
   return (
     <section className="mb-8">
       <div className="flex justify-between items-center mb-4">
-        <Tabs defaultValue="kanban" className="w-full">
+        <Tabs defaultValue="list" className="w-full">
           <div className="flex items-center gap-2 justify-between">
             <h2 className="text-xl font-semibold text-[var(--text-primary)]">
               Tasks
@@ -36,21 +40,9 @@ export function TasksSection() {
 
           <TabsContent value="list">
             <TaskTable
-              tasks={[...todoTasks, ...inProgressTasks, ...doneTasks].map(
-                (task) => ({
-                  id: task.id,
-                  title: task.title,
-                  date: task.dueDate,
-                  assignedTo: {
-                    name: task.assignee.name,
-                    avatar: task.assignee.avatar,
-                  },
-                })
-              )}
+              tasks={transformedTasks}
               title="All Tasks"
-              count={
-                todoTasks.length + inProgressTasks.length + doneTasks.length
-              }
+              count={tasks.length}
             />
           </TabsContent>
 

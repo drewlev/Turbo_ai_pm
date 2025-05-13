@@ -33,6 +33,9 @@ export const meetings = pgTable("meetings", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   transcript: text("transcript"),
   projectId: integer("project_id").references(() => projects.id),
+  firefliesMeetingId: text("fireflies_meeting_id"),
+  firefliesEventType: text("fireflies_event_type"),
+  firefliesClientReferenceId: text("fireflies_client_reference_id"),
 });
 
 export const tasks = pgTable("tasks", {
