@@ -16,7 +16,7 @@ export default async function TaskManagementApp() {
   return (
     <Tabs defaultValue="table" className="w-full gap-0">
       <header className="h-14 border-b border-[var(--border-dark)] flex items-center px-4 justify-between">
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <SidebarTrigger className="mr-2 text-[var(--text-secondary)]" />
           <Button
             variant="outline"
@@ -31,7 +31,7 @@ export default async function TaskManagementApp() {
           >
             <span className="mr-2">Filter</span>
           </Button>
-        </div>
+        </div> */}
         <TabsList className="bg-[var(--background-dark)]">
           <TabsTrigger
             value="table"

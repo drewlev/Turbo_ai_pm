@@ -27,6 +27,23 @@ export const projects = pgTable("projects", {
   status: text("status"),
 });
 
+export const onboarding = pgTable("onboarding", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id),
+  slug: text("slug").notNull().unique(), // for link URL
+  status: text("status").$type<"pending" | "submitted" | "expired">().notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  submittedAt: timestamp("submitted_at"),
+});
+
+export const onboardingQuestions = pgTable("onboarding_questions", {
+  id: serial("id").primaryKey(),
+  onboardingId: integer("onboarding_id").references(() => onboarding.id),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+});
+
 export const meetings = pgTable("meetings", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),

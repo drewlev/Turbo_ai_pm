@@ -1,4 +1,5 @@
 "use server";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NewTask from "@/components/new-task";
 import { Clipboard, Map, UserPlus, HelpCircle } from "lucide-react";
@@ -15,10 +16,11 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
-
+import { Button } from "@/components/ui/button"; // Import Button
 import { NavMain } from "@/components/nav-main";
 import { getActiveProjects } from "@/app/actions/projects";
 import { getUsers } from "@/app/actions/users";
+import { ClientSidebarMenu } from "./client-sidebar";
 
 const projects = await getActiveProjects();
 const listProjects = projects.map((project) => ({
@@ -54,6 +56,7 @@ const data = {
   ],
 };
 
+
 export async function AppSidebar() {
   return (
     <Sidebar className="border-r border-[#2c2d3c] bg-[#181921] text-[#d2d3e0]">
@@ -67,30 +70,14 @@ export async function AppSidebar() {
         </div>
 
         <NewTask assignee={listUsers} projects={listProjects} />
-
-        <SidebarMenu className="bg-[#181921]">
-          <SidebarMenuItem>
-            <SidebarMenuButton className="text-[#d2d3e0]">
-              <Clipboard className="h-4 w-4" />
-              <span>My Tasks</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            {/* <SidebarMenuButton className="text-[#d2d3e0]">
-              <Map className="h-4 w-4" />
-              <span>Roadmaps</span>
-            </SidebarMenuButton> */}
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <ClientSidebarMenu />
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <NavMain items={data.navMain} />
-              </SidebarMenuItem>
+              <NavMain items={data.navMain} />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
