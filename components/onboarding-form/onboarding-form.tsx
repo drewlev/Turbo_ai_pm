@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
-
 import { QuestionStep } from "./question-step";
 import { SuccessScreen } from "./success-screen";
 import { ProgressIndicator } from "./progress-indicator";
 import {
-  getQuestionsBySlug,
   submitAnswer,
   updateOnboardingStatus,
 } from "@/app/actions/onboarding-form";
@@ -18,45 +15,25 @@ import type { OnboardingQuestion } from "./types";
 
 interface OnboardingFormProps {
   slug: string;
+  onboardingId: number;
+  questions: OnboardingQuestion[];
 }
 
-export function OnboardingForm({ slug }: OnboardingFormProps) {
-  const [questions, setQuestions] = useState<OnboardingQuestion[]>([]);
-  const [loading, setLoading] = useState(true);
+export function OnboardingForm({
+  slug,
+  onboardingId,
+  questions: initialQuestions,
+}: OnboardingFormProps) {
+  const [questions] = useState(initialQuestions);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [allAnswers, setAllAnswers] = useState<Record<string, string>>({});
   const [showValidation, setShowValidation] = useState(false);
-  const [onboardingId, setOnboardingId] = useState<number | null>(null);
+
   const methods = useForm({
     mode: "onSubmit",
   });
-
-  useEffect(() => {
-    const loadQuestions = async () => {
-      try {
-        const data = await getQuestionsBySlug(slug);
-        console.log("Questions:", data);
-        if (data) {
-          await updateOnboardingStatus(slug, "opened");
-          setQuestions(
-            data.questions.map((q) => ({
-              ...q,
-              placeholder: q.placeholder ?? undefined,
-            }))
-          );
-          setOnboardingId(data.onboardingId);
-        }
-        setLoading(false);
-      } catch (error) {
-        console.error("Failed to load questions:", error);
-        setLoading(false);
-      }
-    };
-
-    loadQuestions();
-  }, [slug]);
 
   const currentQuestion = questions[currentStep];
 
@@ -64,8 +41,6 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
   useEffect(() => {
     if (currentQuestion) {
       const fieldName = `question_${currentQuestion.id}`;
-      console.log("Creating schema for question:", currentQuestion);
-      console.log("Field name:", fieldName);
 
       let validationSchema;
       if (currentQuestion.type === "email") {
@@ -80,35 +55,24 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
           ? z.string().min(1, `${currentQuestion.label} is required`)
           : z.string().optional();
       }
-      console.log("Created schema:", validationSchema);
 
-      // Register the field with validation
       methods.register(fieldName, {
         required: currentQuestion.required,
         validate: (value) => {
-          // For required fields, only check if empty
           if (currentQuestion.required && !value) {
             return `${currentQuestion.label} is required`;
           }
 
-          // If field is empty and not required, allow it
-          if (!value && !currentQuestion.required) {
+          if (!value && !currentQuestion.required) return true;
+
+          try {
+            validationSchema.parse(value);
             return true;
+          } catch (error) {
+            return error instanceof z.ZodError
+              ? error.errors[0].message
+              : "Invalid input";
           }
-
-          // Only validate format if there's a value
-          if (value) {
-            try {
-              validationSchema.parse(value);
-              return true;
-            } catch (error) {
-              return error instanceof z.ZodError
-                ? error.errors[0].message
-                : "Invalid input";
-            }
-          }
-
-          return true;
         },
       });
 
@@ -121,20 +85,9 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
 
   const handleNext = methods.handleSubmit(async (data) => {
     setShowValidation(true);
-    console.log("Form submission attempt - Current data:", data);
-    console.log("Form validation state:", methods.formState);
-    console.log("Current question:", currentQuestion);
-
-    // Save current answer
     const fieldName = `question_${currentQuestion.id}`;
     const updatedAnswers = { ...allAnswers, [fieldName]: data[fieldName] };
-    console.log("Updated answers:", updatedAnswers);
     setAllAnswers(updatedAnswers);
-
-    // Save to database
-    if (onboardingId == null) {
-      throw new Error("Onboarding ID is missing");
-    }
 
     try {
       const success = await submitAnswer({
@@ -145,17 +98,14 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
 
       if (!success) throw new Error("Failed to submit answer");
 
-      // Track question completion
       await updateOnboardingStatus(
         slug,
         `completed_question_${currentStep + 1}`
       );
 
       if (currentStep < questions.length - 1) {
-        // Move to next question
         setCurrentStep((prev) => prev + 1);
       } else {
-        // Track final completion
         await updateOnboardingStatus(slug, "completed");
         setIsComplete(true);
       }
@@ -175,24 +125,13 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
       event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
       setShowValidation(false);
-
       const value = event.target.value;
       const fieldName = `question_${currentQuestion.id}`;
-
-      // Only update local state
       const updatedAnswers = { ...allAnswers, [fieldName]: value };
       setAllAnswers(updatedAnswers);
     },
     [currentQuestion, allAnswers]
   );
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-[#121212] text-white">
-        <Loader2 className="h-8 w-8 animate-spin text-white" />
-      </div>
-    );
-  }
 
   return (
     <FormProvider {...methods}>

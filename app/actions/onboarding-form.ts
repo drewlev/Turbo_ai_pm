@@ -33,7 +33,11 @@ export async function getQuestionsBySlug(slug: string) {
     // Extract the actual question data from the nested structure
     const questions = onboardingForm.questions.map((item) => item.question);
 
-    return { questions, onboardingId: onboardingForm.id };
+    return {
+      questions,
+      onboardingId: onboardingForm.id,
+      status: onboardingForm.status,
+    };
   } catch (error) {
     console.error("Error fetching questions by slug:", error);
     return null; // Or throw the error depending on your error handling strategy
