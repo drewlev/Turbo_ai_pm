@@ -9,7 +9,10 @@ import { Loader2 } from "lucide-react";
 import { QuestionStep } from "./question-step";
 import { SuccessScreen } from "./success-screen";
 import { ProgressIndicator } from "./progress-indicator";
-import { fetchQuestions, submitAnswers } from "./actions";
+import {
+  getQuestionsBySlug,
+  submitAnswer,
+} from "@/app/actions/onboarding-form";
 import type { OnboardingQuestion } from "./types";
 
 interface OnboardingFormProps {
@@ -24,7 +27,7 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
   const [isComplete, setIsComplete] = useState(false);
   const [allAnswers, setAllAnswers] = useState<Record<string, string>>({});
   const [showValidation, setShowValidation] = useState(false);
-
+  const [onboardingId, setOnboardingId] = useState<number | null>(null);
   const methods = useForm({
     mode: "onSubmit",
   });
@@ -32,8 +35,17 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const data = await fetchQuestions(slug);
-        setQuestions(data);
+        const data = await getQuestionsBySlug(slug);
+        console.log("Questions:", data);
+        if (data) {
+          setQuestions(
+            data.questions.map((q) => ({
+              ...q,
+              placeholder: q.placeholder ?? undefined,
+            }))
+          );
+          setOnboardingId(data.onboardingId);
+        }
         setLoading(false);
       } catch (error) {
         console.error("Failed to load questions:", error);
@@ -61,13 +73,6 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
               .email("Please enter a valid email")
               .min(1, `${currentQuestion.label} is required`)
           : z.string().email("Please enter a valid email").optional();
-      } else if (currentQuestion.type === "url") {
-        validationSchema = currentQuestion.required
-          ? z
-              .string()
-              .url("Please enter a valid URL")
-              .min(1, `${currentQuestion.label} is required`)
-          : z.string().url("Please enter a valid URL").optional();
       } else {
         validationSchema = currentQuestion.required
           ? z.string().min(1, `${currentQuestion.label} is required`)
@@ -124,32 +129,28 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
     console.log("Updated answers:", updatedAnswers);
     setAllAnswers(updatedAnswers);
 
-    if (currentStep < questions.length - 1) {
-      // Move to next question
-      setCurrentStep((prev) => prev + 1);
-    } else {
-      // Submit all answers
-      setIsSubmitting(true);
-      try {
-        const formattedAnswers = Object.entries(updatedAnswers).map(
-          ([key, value]) => {
-            const questionId = Number.parseInt(key.split("_")[1]);
-            return { questionId, answer: value };
-          }
-        );
-        console.log("Submitting formatted answers:", formattedAnswers);
+    // Save to database
+    if (onboardingId == null) {
+      throw new Error("Onboarding ID is missing");
+    }
 
-        await submitAnswers({
-          slug,
-          answers: formattedAnswers,
-        });
+    try {
+      const success = await submitAnswer({
+        onboardingId,
+        questionId: currentQuestion.id,
+        answer: data[fieldName],
+      });
 
+      if (!success) throw new Error("Failed to submit answer");
+
+      if (currentStep < questions.length - 1) {
+        // Move to next question
+        setCurrentStep((prev) => prev + 1);
+      } else {
         setIsComplete(true);
-      } catch (error) {
-        console.error("Failed to submit answers:", error);
-      } finally {
-        setIsSubmitting(false);
       }
+    } catch (error) {
+      console.error("Failed to submit answer:", error);
     }
   });
 
@@ -159,9 +160,21 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
     }
   };
 
-  const handleInputChange = useCallback(() => {
-    setShowValidation(false);
-  }, []);
+  const handleInputChange = useCallback(
+    async (
+      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+      setShowValidation(false);
+
+      const value = event.target.value;
+      const fieldName = `question_${currentQuestion.id}`;
+
+      // Only update local state
+      const updatedAnswers = { ...allAnswers, [fieldName]: value };
+      setAllAnswers(updatedAnswers);
+    },
+    [currentQuestion, allAnswers]
+  );
 
   if (loading) {
     return (

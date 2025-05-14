@@ -15,7 +15,10 @@ interface QuestionStepProps {
   isLast: boolean;
   isSubmitting: boolean;
   showValidation: boolean;
-  onInputChange: () => void;
+  onInputChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    fieldName: string
+  ) => void;
 }
 
 export function QuestionStep({
@@ -49,7 +52,7 @@ export function QuestionStep({
             className="min-h-[120px] rounded-xl border-gray-700 bg-gray-800 p-4 text-lg focus:border-gray-600 focus:ring-gray-600"
             onChange={(e) => {
               register(fieldName).onChange(e);
-              onInputChange();
+              onInputChange(e, fieldName);
             }}
           />
         ) : (
@@ -60,7 +63,7 @@ export function QuestionStep({
             className="h-12 rounded-xl border-gray-700 bg-gray-800 p-4 text-lg focus:border-gray-600 focus:ring-gray-600"
             onChange={(e) => {
               register(fieldName).onChange(e);
-              onInputChange();
+              onInputChange(e, fieldName);
             }}
           />
         )}

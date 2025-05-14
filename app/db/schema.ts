@@ -5,9 +5,9 @@ import {
   text,
   timestamp,
   primaryKey,
-  real,
+  numeric,
   unique,
-  boolean
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -47,11 +47,43 @@ export const onboardingFormQuestions = pgTable("onboarding_form_questions", {
   required: boolean("required").notNull().default(true),
 });
 
+export const onboardingQuestions = pgTable(
+  "onboarding_questions",
+  {
+    onboardingId: integer("onboarding_id")
+      .notNull()
+      .references(() => onboarding.id),
+    questionId: integer("question_id")
+      .notNull()
+      .references(() => onboardingFormQuestions.id),
+  },
+  (table) => [primaryKey({ columns: [table.onboardingId, table.questionId] })]
+);
+
+export const onboardingFormAnswers = pgTable(
+  "onboarding_form_answers",
+  {
+    id: serial("id").primaryKey(),
+    onboardingId: integer("onboarding_id")
+      .notNull()
+      .references(() => onboarding.id),
+    questionId: integer("question_id")
+      .notNull()
+      .references(() => onboardingFormQuestions.id),
+    answer: text("answer"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    onboardingQuestionUnique: unique().on(table.onboardingId, table.questionId),
+  })
+);
+
 export const meetings = pgTable("meetings", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   dateString: timestamp("date_string").notNull(),
-  duration: real("duration"),
+  duration: numeric("duration"),
   transcriptUrl: text("transcript_url"),
   audioUrl: text("audio_url"),
   videoUrl: text("video_url"),
@@ -83,8 +115,8 @@ export const sentences = pgTable("sentences", {
   meetingId: integer("meeting_id").notNull(), // FK to meetings.id
   index: integer("index").notNull(),
   text: text("text").notNull(),
-  startTime: real("start_time"),
-  endTime: real("end_time"),
+  startTime: numeric("start_time"),
+  endTime: numeric("end_time"),
   speakerName: text("speaker_name"),
 });
 
@@ -195,3 +227,52 @@ export const participantRelations = relations(participants, ({ one }) => ({
     references: [meetings.id],
   }),
 }));
+
+// Add relations to the onboarding and onboardingFormQuestions tables
+export const onboardingAnswerRelations = relations(
+  onboardingFormAnswers,
+  ({ one }) => ({
+    onboarding: one(onboarding, {
+      fields: [onboardingFormAnswers.onboardingId],
+      references: [onboarding.id],
+    }),
+    question: one(onboardingFormQuestions, {
+      fields: [onboardingFormAnswers.questionId],
+      references: [onboardingFormQuestions.id],
+    }),
+  })
+);
+
+// Update onboarding relation to include answers
+// Onboarding Relations
+export const onboardingRelations = relations(onboarding, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [onboarding.projectId],
+    references: [projects.id],
+  }),
+  questions: many(onboardingQuestions), // New relation
+  answers: many(onboardingFormAnswers),
+}));
+
+// Update onboardingFormQuestions relation to include answers
+export const onboardingQuestionRelations = relations(
+  onboardingFormQuestions,
+  ({ many }) => ({
+    answers: many(onboardingFormAnswers),
+  })
+);
+
+// Onboarding Questions (Join Table) Relations
+export const onboardingQuestionsRelations = relations(
+  onboardingQuestions,
+  ({ one }) => ({
+    onboarding: one(onboarding, {
+      fields: [onboardingQuestions.onboardingId],
+      references: [onboarding.id],
+    }),
+    question: one(onboardingFormQuestions, {
+      fields: [onboardingQuestions.questionId],
+      references: [onboardingFormQuestions.id],
+    }),
+  })
+);
