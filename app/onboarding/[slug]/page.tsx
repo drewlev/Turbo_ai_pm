@@ -6,7 +6,7 @@ import {
   updateOnboardingStatus,
 } from "@/app/actions/onboarding-form";
 import { AlreadyCompletedScreen } from "@/components/onboarding-form/already-completed";
-
+import { OnboardingNotFoundScreen } from "@/components/onboarding-form/missing-from";
 interface OnboardingPageProps {
   params: {
     slug: string;
@@ -18,7 +18,7 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
 
   const data = await getQuestionsBySlug(slug);
   console.log("data", data);
-  if (!data) return <div>No questions found</div>;
+  if (!data) return <OnboardingNotFoundScreen />;
 
   if (data.status === "completed") {
     // Track form was completed
