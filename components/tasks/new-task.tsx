@@ -1,15 +1,13 @@
 "use client";
 
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { useState } from "react";
 import { SquarePen } from "lucide-react";
 import TaskModal from "./task-dialog";
 
 export default function NewTask({
-  assignee,
   projects,
 }: {
-  assignee: { title: string; url: string; id: number }[];
   projects: { title: string; url: string; id: number }[];
 }) {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -28,7 +26,7 @@ export default function NewTask({
       <TaskModal
         open={taskModalOpen}
         onOpenChange={setTaskModalOpen}
-        assignee={assignee}
+        selectedTask={null}
         projects={projects}
       />
     </div>

@@ -147,6 +147,15 @@ export const taskAssignees = pgTable(
   (table) => [primaryKey({ columns: [table.taskId, table.userId] })]
 );
 
+export const looms = pgTable("looms", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id),
+  userId: integer("user_id").references(() => users.id),
+  loomUrl: text("loom_url").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Relations
 
 // User Relations
@@ -276,3 +285,15 @@ export const onboardingQuestionsRelations = relations(
     }),
   })
 );
+
+// Looms Relations
+export const loomRelations = relations(looms, ({ one }) => ({
+  project: one(projects, {
+    fields: [looms.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [looms.userId],
+    references: [users.id],
+  }),
+}));

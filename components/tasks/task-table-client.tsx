@@ -1,12 +1,7 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Checkbox } from "@/components/ui/checkbox";
-import { StackedInitials } from "@/components/stacked-avatars";
-import { tasks } from "@/app/db/schema";
-import { StatusButton } from "@/components/status-button";
+import TaskModal from "@/components/tasks/task-dialog";
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
@@ -22,26 +17,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
+import { TaskTableTask } from "@/app/types/task";
+import { Checkbox } from "@/components/ui/checkbox";
+import { StackedInitials } from "@/components/stacked-avatars";
+import { StatusButton } from "@/components/tasks/status-button";
 import { daysOutDisplayer } from "@/lib/date-and-time";
-interface Task {
-  id: string;
-  title: string;
-  date?: string;
-  assignedTo?: {
-    label: string;
-    url: string;
-    id: number;
-  }[];
-  status: string;
-}
+import { ColumnDef } from "@tanstack/react-table";
 
-interface TaskTableProps {
-  tasks: Task[];
-  title: string;
-  count: number;
-}
-
-const columns: ColumnDef<Task>[] = [
+const columns: ColumnDef<TaskTableTask>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -67,7 +50,7 @@ const columns: ColumnDef<Task>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as Task["status"];
+      const status = row.getValue("status") as TaskTableTask["status"];
       return (
         <StatusButton
           status={status}
@@ -98,15 +81,35 @@ const columns: ColumnDef<Task>[] = [
     accessorKey: "assignedTo",
     header: "Assigned",
     cell: ({ row }) => {
-      const assignedTo = row.getValue("assignedTo") as Task["assignedTo"];
+      const assignedTo = row.getValue(
+        "assignedTo"
+      ) as TaskTableTask["assignedTo"];
       return assignedTo ? <StackedInitials assignees={assignedTo} /> : null;
     },
   },
 ];
 
-export function TaskTable({ tasks, title, count }: TaskTableProps) {
+interface TaskTableClientProps {
+  tasks: TaskTableTask[];
+  title: string;
+  count: number;
+  projects: {
+    id: number;
+    title: string;
+    url: string;
+  }[];
+}
+
+export function TaskTableClient({
+  tasks,
+  title,
+  count,
+  projects,
+}: TaskTableClientProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  console.log(tasks);
+  const [selectedTask, setSelectedTask] = useState<TaskTableTask | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  console.log({ selectedTask });
   const table = useReactTable({
     data: tasks,
     columns,
@@ -117,6 +120,11 @@ export function TaskTable({ tasks, title, count }: TaskTableProps) {
       sorting,
     },
   });
+
+  const handleRowClick = (task: TaskTableTask) => {
+    setSelectedTask(task);
+    setDialogOpen(true);
+  };
 
   return (
     <div className="mb-6">
@@ -157,7 +165,7 @@ export function TaskTable({ tasks, title, count }: TaskTableProps) {
                   key={row.id}
                   className="group cursor-pointer border-b border-gray-500"
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={() => row.toggleSelected(!row.getIsSelected())}
+                  onClick={() => handleRowClick(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -189,6 +197,14 @@ export function TaskTable({ tasks, title, count }: TaskTableProps) {
           </TableBody>
         </Table>
       </div>
+      {selectedTask && (
+        <TaskModal
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          selectedTask={selectedTask}
+          projects={projects}
+        />
+      )}
     </div>
   );
 }

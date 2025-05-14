@@ -1,5 +1,6 @@
 "use client";
-import { StatusButton } from "@/components/status-button";
+import { StatusButton } from "@/components/tasks/status-button";
+import { PriorityButton } from "@/components/tasks/components/priority-button";
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -10,8 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { createTask, createTaskAndAssign } from "@/app/actions/tasks";
+import { createTaskAndAssign, updateTask } from "@/app/actions/tasks";
 import { toast } from "sonner";
 import { StackedInitials } from "@/components/stacked-avatars";
 import { DatePicker } from "@/components/date-picker";
@@ -27,70 +27,9 @@ import {
 } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Combobox, Option } from "@/components/combbox";
-import { cn } from "@/lib/utils";
+
 import { z } from "zod";
-
-type Assignee = {
-  label: string;
-  url: string;
-  id: number;
-};
-
-const low = <span className="mr-1 bg-green-500 rounded-full w-2 h-2"></span>;
-
-const medium = (
-  <span className="mr-1 bg-yellow-500 rounded-full w-2 h-2"></span>
-);
-
-const high = <span className="mr-1 bg-red-500 rounded-full w-2 h-2"></span>;
-
-const priorityOptions: Option[] = [
-  { value: "high", label: "High", icon: high },
-  { value: "medium", label: "Medium", icon: medium },
-  { value: "low", label: "Low", icon: low },
-];
-
-const statusOptions: Option[] = [
-  { value: "todo", label: "To Do", icon: <CheckCircle /> },
-  { value: "in_progress", label: "In Progress", icon: <Clock /> },
-  { value: "done", label: "Done", icon: <Check /> },
-];
-
-const PriorityButton = ({
-  priority,
-  onValueChange,
-}: {
-  priority: string;
-  onValueChange: (value: string) => void;
-}) => {
-  return (
-    <Combobox
-      options={priorityOptions}
-      value={priority}
-      onValueChange={(value) => onValueChange(value as string)}
-      trigger={
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
-        >
-          {priority ? (
-            <>
-              {priorityOptions.find((opt) => opt.value === priority)?.icon}
-              <span>
-                {priorityOptions.find((opt) => opt.value === priority)?.label}
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="mr-1">···</span> Priority
-            </>
-          )}
-        </Button>
-      }
-    />
-  );
-};
+import { TaskTableTask } from "@/app/types/task";
 
 const DateButton = ({
   date,
@@ -254,6 +193,7 @@ const TaskActions = ({
   project,
   assigneeValue,
   date,
+  taskId,
 }: {
   onCreateTask: () => void;
   title: string;
@@ -262,6 +202,7 @@ const TaskActions = ({
   project: { url: string; id: number } | null;
   assigneeValue: { url: string; id: number }[];
   date?: string;
+  taskId?: number | null;
 }) => {
   return (
     <div className="flex items-center justify-between">
@@ -279,7 +220,7 @@ const TaskActions = ({
           className="bg-blue-600 hover:bg-blue-700"
           onClick={onCreateTask}
         >
-          Create Task
+          {taskId ? "Update Task" : "Create Task"}
         </Button>
       </div>
     </div>
@@ -299,18 +240,18 @@ type TaskFormData = z.infer<typeof taskFormSchema>;
 export default function TaskModal({
   open,
   onOpenChange,
-  assignee,
+  selectedTask,
   projects,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  assignee: { title: string; url: string; id: number }[];
+  selectedTask: TaskTableTask | null;
   projects: { title: string; url: string; id: number }[];
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("");
   const [status, setStatus] = useState("");
+  const [priority, setPriority] = useState("");
   const [project, setProject] = useState<{ url: string; id: number } | null>(
     null
   );
@@ -320,20 +261,44 @@ export default function TaskModal({
   const [date, setDate] = useState("");
   const [taskId, setTaskId] = useState<number | null>(null);
 
+  // Initialize or reset state when dialog opens/closes
   useEffect(() => {
-    if (!open) {
+    if (open && selectedTask) {
+      // Initialize state when dialog opens with a selected task
+      setDescription(selectedTask.description || "");
+      setTitle(selectedTask.title || "");
+      setStatus(selectedTask.status || "");
+      setPriority(selectedTask.priority || "");
+      setProject(
+        selectedTask.projectId
+          ? {
+              url: selectedTask.projectId.toString(),
+              id: selectedTask.projectId,
+            }
+          : null
+      );
+      setAssigneeValue(
+        selectedTask.assignedTo?.map((a) => ({ url: a.url, id: a.id })) || []
+      );
+      setDate(selectedTask.dueDate || "");
+      setTaskId(selectedTask.id ? parseInt(selectedTask.id) : null);
+    } else if (!open) {
+      // Reset state when dialog closes
       setTitle("");
       setDescription("");
       setPriority("");
       setProject(null);
       setAssigneeValue([]);
+      setDate("");
+      setTaskId(null);
     }
-  }, [open]);
+  }, [open, selectedTask]);
 
-  const assigneeOptions: Option[] = assignee.map((user) => ({
-    value: user.id.toString(),
-    label: user.title,
-  }));
+  const assigneeOptions: Option[] =
+    selectedTask?.assignedTo?.map((user) => ({
+      value: user.id.toString(),
+      label: user.label,
+    })) || [];
 
   const projectOptions: Option[] = projects.map((project) => ({
     value: project.id.toString(),
@@ -351,29 +316,47 @@ export default function TaskModal({
       };
 
       const validatedData = taskFormSchema.parse(formData);
+      const dueDate = date ? new Date(date) : undefined;
 
-      const result = await createTaskAndAssign({
-        title: validatedData.title,
-        description: validatedData.description,
-        priority: validatedData.priority,
-        projectId: validatedData.projectId,
-        assigneeID: validatedData.assigneeIds,
-        dueDate: date ? new Date(date) : undefined,
-      });
+      if (taskId) {
+        const result = await updateTask(taskId, {
+          title: validatedData.title,
+          description: validatedData.description,
+          priority: validatedData.priority,
+          projectId: validatedData.projectId,
+          dueDate,
+          assigneeID: validatedData.assigneeIds,
+        });
 
-      if (result.success && result.taskId) {
-        setTaskId(result.taskId);
-        toast.success("Task created successfully!");
-        onOpenChange(false);
+        if (result) {
+          toast.success("Task updated successfully!");
+        } else {
+          throw new Error("Failed to update task");
+        }
       } else {
-        throw new Error("Failed to create task");
+        const result = await createTaskAndAssign({
+          title: validatedData.title,
+          description: validatedData.description,
+          priority: validatedData.priority,
+          projectId: validatedData.projectId,
+          assigneeID: validatedData.assigneeIds,
+          dueDate,
+        });
+
+        if (result.success && result.taskId) {
+          setTaskId(result.taskId);
+          toast.success("Task created successfully!");
+        } else {
+          throw new Error("Failed to create task");
+        }
       }
+      onOpenChange(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessages = error.errors.map((err) => err.message).join("\n");
         toast.error(errorMessages);
       } else {
-        toast.error("Failed to create task");
+        toast.error("Failed to save task");
       }
     }
   };
@@ -386,11 +369,11 @@ export default function TaskModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden">
         <VisuallyHidden>
-          <DialogTitle>Create New Task</DialogTitle>
+          <DialogTitle>{taskId ? "Edit Task" : "Create New Task"}</DialogTitle>
         </VisuallyHidden>
         <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
           <div className="flex items-center gap-2">
-            <span className="text-sm">New Task</span>
+            <span className="text-sm">{taskId ? "Edit Task" : "New Task"}</span>
           </div>
           <div className="flex items-center gap-2">
             <DialogClose asChild>
@@ -469,6 +452,7 @@ export default function TaskModal({
             project={project}
             assigneeValue={assigneeValue}
             date={date}
+            taskId={taskId}
           />
         </div>
       </DialogContent>

@@ -3,15 +3,22 @@
 import { LayoutGrid, List, ChevronDown } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { TaskTable } from "@/components/table";
+import { TaskTableClient } from "@/components/tasks/task-table-client";
 import { KanbanBoard } from "@/components/kanban-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getTasks } from "@/app/actions/tasks";
 import { transformTasksForUI } from "@/app/types/task";
+import { getActiveProjects } from "@/app/actions/projects";
 
 export default async function TaskManagementApp() {
   const tasks = await getTasks();
   const transformedTasks = transformTasksForUI(tasks);
+  const activeProjects = await getActiveProjects();
+  const projects = activeProjects.map((project) => ({
+    id: project.id,
+    title: project.name,
+    url: project.id.toString(),
+  }));
 
   return (
     <Tabs defaultValue="table" className="w-full gap-0">
@@ -50,10 +57,11 @@ export default async function TaskManagementApp() {
 
       <main className="flex h-[calc(100vh-3.5rem)] p-4 overflow-auto bg-[var(--background-dark)]">
         <TabsContent value="table">
-          <TaskTable
+          <TaskTableClient
             tasks={transformedTasks}
             title="Todo"
             count={tasks.length}
+            projects={projects}
           />
         </TabsContent>
         <TabsContent value="kanban">

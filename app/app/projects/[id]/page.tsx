@@ -1,4 +1,4 @@
-'use server'
+"use server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectHeader } from "@/app/app/projects/[id]/components/project-header";
 import { SnapshotSummary } from "@/app/app/projects/[id]/components/snapshot-summary";
@@ -7,8 +7,12 @@ import { DeliverablesFeed } from "@/app/app/projects/[id]/components/deliverable
 import { MeetingsSummary } from "@/app/app/projects/[id]/components/meeting-summary";
 import { SlackActivity } from "@/app/app/projects/[id]/components/slack-activity";
 import { getTasksByProjectId } from "@/app/actions/tasks";
-
-export default async function Dashboard({ params }: { params: { id: string } }) {
+import Frame from "@/components/vercel-tabs";
+export default async function Dashboard({
+  params,
+}: {
+  params: { id: string };
+}) {
   const tasks = await getTasksByProjectId(Number(params.id));
   return (
     <div className="flex min-h-screen bg-[var(--background-dark)]">
@@ -19,93 +23,53 @@ export default async function Dashboard({ params }: { params: { id: string } }) 
 
         {/* Main Content Area */}
         <main className="max-w-[1200px] mx-auto px-8">
+          {/* <Frame /> */}
           {/* Tabs Navigation */}
-          <Tabs defaultValue="snapshot" className="w-full">
-            <TabsList className="border-none border-[var(--border-dark)] w-full justify-start rounded-none bg-transparent h-auto py-0">
-              <TabsTrigger
-                value="snapshot"
-                className="rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-[var(--text-primary)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--text-primary)] data-[state=active]:shadow-none px-4 py-4 text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)] transition-colors"
-              >
-                Snapshot
-              </TabsTrigger>
-              <TabsTrigger
-                value="tasks"
-                className="rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-[var(--text-primary)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--text-primary)] data-[state=active]:shadow-none px-4 py-4 text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)] transition-colors"
-              >
-                Tasks
-              </TabsTrigger>
-              <TabsTrigger
-                value="meetings"
-                className="rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-[var(--text-primary)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--text-primary)] data-[state=active]:shadow-none px-4 py-4 text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)] transition-colors"
-              >
-                Meetings
-              </TabsTrigger>
-              <TabsTrigger
-                value="files"
-                className="rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-[var(--text-primary)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--text-primary)] data-[state=active]:shadow-none px-4 py-4 text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)] transition-colors"
-              >
-                Files
-              </TabsTrigger>
-              <TabsTrigger
-                value="settings"
-                className="rounded-none border-0 border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-[var(--text-primary)] data-[state=active]:bg-transparent data-[state=active]:text-[var(--text-primary)] data-[state=active]:shadow-none px-4 py-4 text-[var(--text-secondary)] font-medium hover:text-[var(--text-primary)] transition-colors"
-              >
-                Settings
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="snapshot" className="mt-8 space-y-8">
-              <SnapshotSummary  />
-              <TasksSection  tasks={tasks}/>
-              <DeliverablesFeed />
-              <MeetingsSummary />
-              <SlackActivity />
-            </TabsContent>
-
-            <TabsContent value="tasks">
-              <div className="py-8">
-                <h2 className="text-2xl font-semibold mb-4 text-[var(--text-primary)]">
-                  All Tasks
-                </h2>
-                <p className="text-[var(--text-secondary)]">
-                  Full task management view would go here.
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="meetings">
-              <div className="py-8">
-                <h2 className="text-2xl font-semibold mb-4 text-[var(--text-primary)]">
-                  All Meetings
-                </h2>
-                <p className="text-[var(--text-secondary)]">
-                  Full meetings history and calendar would go here.
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="files">
-              <div className="py-8">
-                <h2 className="text-2xl font-semibold mb-4 text-[var(--text-primary)]">
-                  Files & Documents
-                </h2>
-                <p className="text-[var(--text-secondary)]">
-                  File repository would go here.
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="settings">
-              <div className="py-8">
-                <h2 className="text-2xl font-semibold mb-4 text-[var(--text-primary)]">
-                  Project Settings
-                </h2>
-                <p className="text-[var(--text-secondary)]">
-                  Project configuration options would go here.
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <Frame
+            defaultValue="snapshot"
+            tabs={[
+              {
+                label: "Snapshot",
+                value: "snapshot",
+                content: (
+                  <>
+                    <SnapshotSummary />
+                    <TasksSection tasks={tasks} />
+                    <DeliverablesFeed />
+                    <MeetingsSummary />
+                    <SlackActivity />
+                  </>
+                ),
+              },
+              {
+                label: "Tasks",
+                value: "tasks",
+                content: (
+                  <div className="w-full">
+                    <TasksSection tasks={tasks} />
+                  </div>
+                ),
+              },
+              {
+                label: "Meetings",
+                value: "meetings",
+                content: (
+                  <div className="w-full">
+                    <MeetingsSummary />
+                  </div>
+                ),
+              },
+              {
+                label: "Files",
+                value: "files",
+                content: (
+                  <>
+                    <DeliverablesFeed />
+                  </>
+                ),
+              },
+            ]}
+          />
         </main>
       </div>
     </div>

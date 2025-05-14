@@ -18,7 +18,7 @@ import {
   MouseSensor,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
-import { type Task, TaskCard } from "@/components/task-card";
+import { type Task, TaskCard } from "@/components/tasks/task-card";
 import type { Column } from "@/components/board-column";
 import { hasDraggableData } from "@/components/utils";
 // import { coordinateGetter } from "@/components/multipleContainersKeyboardPreset";

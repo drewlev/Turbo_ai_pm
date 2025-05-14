@@ -1,7 +1,7 @@
 "use server";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import NewTask from "@/components/new-task";
+import NewTask from "@/components/tasks/new-task";
 import { Clipboard, Map, UserPlus, HelpCircle } from "lucide-react";
 import {
   Sidebar,
@@ -55,7 +55,6 @@ const data = {
     },
   ],
 };
-
 
 export async function AppSidebar() {
   return (

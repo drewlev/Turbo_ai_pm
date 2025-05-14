@@ -59,7 +59,7 @@ export const StackedInitials = ({ assignees }: { assignees: Assignee[] }) => {
                     "w-6 h-6 border-[1.5px] border-[#121212]",
                     `${bgColor} text-white`
                   )}
-                  style={{ zIndex: 10 - idx }}
+                  style={{ zIndex: 9 - idx }}
                 >
                   <AvatarFallback className="bg-blue-600 text-white">
                     {initials}

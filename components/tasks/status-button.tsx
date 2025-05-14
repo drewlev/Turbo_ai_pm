@@ -2,8 +2,8 @@
 "use client";
 
 import { CheckCircle, Circle, LoaderCircle, CircleAlert } from "lucide-react";
-import { Combobox } from "./combbox";
-import { Button } from "./ui/button";
+import { Combobox } from "../combbox";
+import { Button } from "../ui/button";
 import { updateTask } from "@/app/actions/tasks";
 
 type Option = {
