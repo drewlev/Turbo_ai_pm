@@ -10,7 +10,7 @@ import {
   onboardingFormAnswers,
   onboardingQuestions,
 } from "@/app/db/schema";
-
+import type { OnboardingStatus } from "@/app/types/onboarding";
 import { eq } from "drizzle-orm";
 
 export async function getQuestionsBySlug(slug: string) {
@@ -75,7 +75,7 @@ export async function submitAnswer(payload: {
 
 export async function updateOnboardingStatus(
   slug: string,
-  status: "opened" | `completed_question_${number}` | "completed"
+  status: OnboardingStatus
 ): Promise<number | undefined> {
   try {
     let onboardingRecord = await db
@@ -89,13 +89,13 @@ export async function updateOnboardingStatus(
         .insert(onboarding)
         .values({ slug: slug, status: status })
         .returning({ id: onboarding.id });
-      return newRecord?.id;
+      return newRecord[0].id;
     } else if (onboardingRecord) {
       await db
         .update(onboarding)
         .set({ status: status, updatedAt: new Date() })
-        .where(eq(onboarding.id, onboardingRecord.id));
-      return onboardingRecord.id;
+        .where(eq(onboarding.id, onboardingRecord[0].id));
+      return onboardingRecord[0].id;
     }
     return undefined; // Could not find or create the record
   } catch (error) {

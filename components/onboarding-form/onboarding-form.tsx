@@ -12,6 +12,7 @@ import { ProgressIndicator } from "./progress-indicator";
 import {
   getQuestionsBySlug,
   submitAnswer,
+  updateOnboardingStatus,
 } from "@/app/actions/onboarding-form";
 import type { OnboardingQuestion } from "./types";
 
@@ -38,6 +39,7 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
         const data = await getQuestionsBySlug(slug);
         console.log("Questions:", data);
         if (data) {
+          await updateOnboardingStatus(slug, "opened");
           setQuestions(
             data.questions.map((q) => ({
               ...q,
@@ -143,10 +145,18 @@ export function OnboardingForm({ slug }: OnboardingFormProps) {
 
       if (!success) throw new Error("Failed to submit answer");
 
+      // Track question completion
+      await updateOnboardingStatus(
+        slug,
+        `completed_question_${currentStep + 1}`
+      );
+
       if (currentStep < questions.length - 1) {
         // Move to next question
         setCurrentStep((prev) => prev + 1);
       } else {
+        // Track final completion
+        await updateOnboardingStatus(slug, "completed");
         setIsComplete(true);
       }
     } catch (error) {

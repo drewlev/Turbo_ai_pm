@@ -32,7 +32,7 @@ export const onboarding = pgTable("onboarding", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").references(() => projects.id),
   slug: text("slug").notNull().unique(), // for link URL
-  status: text("status").$type<"pending" | "submitted" | "expired">().notNull(),
+  status: text("status").notNull(), // ✅ now supports dynamic status strings
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   submittedAt: timestamp("submitted_at"),
