@@ -9,10 +9,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Plus, Pencil, Trash2 } from "lucide-react";
+import { X, Plus, Pencil, Trash2, Copy, Check } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { toast } from "sonner";
 import { z } from "zod";
+import { createProject } from "@/app/actions/projects";
 
 const linkedinRegex =
   /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/;
@@ -65,6 +66,8 @@ export default function ProjectModal({
     email: "",
   });
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [onboardingLink, setOnboardingLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -74,8 +77,20 @@ export default function ProjectModal({
       setClients([]);
       setNewClient({ name: "", linkedin: "", email: "" });
       setEditingIndex(null);
+      setOnboardingLink(null);
+      setCopied(false);
     }
   }, [open]);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy link");
+    }
+  };
 
   const handleAddClient = () => {
     try {
@@ -126,7 +141,7 @@ export default function ProjectModal({
     setNewClient({ name: "", linkedin: "", email: "" });
   };
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     try {
       const formData: ProjectFormData = {
         name,
@@ -136,11 +151,16 @@ export default function ProjectModal({
 
       const validatedData = projectFormSchema.parse(formData);
 
-      // TODO: Add your project creation API call here
       console.log("Creating project:", validatedData);
-
-      toast.success("Project created successfully!");
-      onOpenChange(false);
+      const { project, onboarding, onboardingLink } = await createProject(
+        validatedData
+      );
+      if (project && onboarding && onboardingLink) {
+        setOnboardingLink(onboardingLink);
+        toast.success("Project created successfully!");
+      } else {
+        toast.error("Failed to create project");
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessages = error.errors.map((err) => err.message).join("\n");
@@ -150,6 +170,63 @@ export default function ProjectModal({
       }
     }
   };
+
+  if (onboardingLink) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden">
+          <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">Project Created Successfully</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <DialogClose asChild>
+                <button className="p-1 rounded hover:bg-[#2a2a2a]">
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              </DialogClose>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-6">
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-semibold">Share Onboarding Link</h3>
+              <p className="text-gray-400">
+                Share this link with your clients to start their onboarding
+                process
+              </p>
+            </div>
+
+            <div className="bg-[#2a2a2a] p-4 rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <code className="text-sm text-gray-300 break-all">
+                  {onboardingLink}
+                </code>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 hover:bg-[#3a3a3a]"
+                  onClick={() => copyToClipboard(onboardingLink)}
+                >
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <DialogClose asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700">Done</Button>
+              </DialogClose>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -7,6 +7,7 @@ import {
   primaryKey,
   real,
   unique,
+  boolean
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -37,11 +38,13 @@ export const onboarding = pgTable("onboarding", {
   submittedAt: timestamp("submitted_at"),
 });
 
-export const onboardingQuestions = pgTable("onboarding_questions", {
+export const onboardingFormQuestions = pgTable("onboarding_form_questions", {
   id: serial("id").primaryKey(),
-  onboardingId: integer("onboarding_id").references(() => onboarding.id),
-  question: text("question").notNull(),
-  answer: text("answer").notNull(),
+  order: integer("order").notNull(), // for step order
+  type: text("type").$type<"text" | "email" | "url" | "textarea">().notNull(),
+  label: text("label").notNull(),
+  placeholder: text("placeholder"),
+  required: boolean("required").notNull().default(true),
 });
 
 export const meetings = pgTable("meetings", {
