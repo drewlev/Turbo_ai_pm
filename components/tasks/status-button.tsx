@@ -41,6 +41,7 @@ export const StatusButton = ({
   onStatusUpdated: (taskId: number, newStatus: string) => void;
 }) => {
   const handleStatusChange = async (newStatus: string) => {
+    console.log("here 3 ", { newStatus });
     try {
       const updatedTask = await updateTask(taskId, {
         status: newStatus,
@@ -54,32 +55,35 @@ export const StatusButton = ({
     }
   };
 
+  console.log({ status });
+
   return (
-    <Combobox
-      options={statusOptions}
-      value={status}
-      onValueChange={(value) => handleStatusChange(value as string)}
-      trigger={
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {status ? (
-            <>
-              {statusOptions.find((opt) => opt.value === status)?.icon}
-              <span>
-                {statusOptions.find((opt) => opt.value === status)?.label}
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="mr-1"></span> Status
-            </>
-          )}
-        </Button>
-      }
-    />
+    <div onClick={(e) => e.stopPropagation()}>
+      <Combobox
+        options={statusOptions}
+        value={status}
+        onValueChange={(value) => handleStatusChange(value as string)}
+        trigger={
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
+          >
+            {status ? (
+              <>
+                {statusOptions.find((opt) => opt.value === status)?.icon}
+                <span>
+                  {statusOptions.find((opt) => opt.value === status)?.label}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="mr-1"></span> Status
+              </>
+            )}
+          </Button>
+        }
+      />
+    </div>
   );
 };

@@ -342,6 +342,8 @@ export default function TaskModal({
     }
   };
 
+  console.log(formData.status, { formData });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden !max-w-none">
@@ -407,12 +409,12 @@ export default function TaskModal({
               <StatusButton
                 status={formData.status}
                 taskId={parseInt(selectedTask.id)}
-                onStatusUpdated={(newStatus) =>
+                onStatusUpdated={(taskId, newStatus) => {
                   setFormData((prev) => ({
                     ...prev,
-                    status: String(newStatus),
-                  }))
-                }
+                    status: newStatus,
+                  }));
+                }}
               />
             )}
             <ProjectButton
