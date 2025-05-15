@@ -15,19 +15,10 @@ import { createTaskAndAssign, updateTask } from "@/app/actions/tasks";
 import { toast } from "sonner";
 import { StackedInitials } from "@/components/stacked-avatars";
 import { DatePicker } from "@/components/date-picker";
-import {
-  X,
-  MoreHorizontal,
-  Paperclip,
-  MessageSquare,
-  Users,
-  CheckCircle,
-  Clock,
-  Check,
-} from "lucide-react";
+import { X, Users } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Combobox, Option } from "@/components/combbox";
-
+import { AddLoom } from "@/components/tasks/components/add-loom";
 import { z } from "zod";
 import { TaskTableTask } from "@/app/types/task";
 
@@ -194,6 +185,8 @@ const TaskActions = ({
   assigneeValue,
   date,
   taskId,
+  loomUrl,
+  selectedTask,
 }: {
   onCreateTask: () => void;
   title: string;
@@ -203,18 +196,17 @@ const TaskActions = ({
   assigneeValue: { url: string; id: number }[];
   date?: string;
   taskId?: number | null;
+  loomUrl?: string;
+  selectedTask: TaskTableTask | null;
 }) => {
+  console.log(selectedTask?.loomUrl);
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 p-2 text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
-        >
-          <Paperclip className="w-4 h-4" />
-        </Button>
-      </div>
+      {selectedTask && (
+        <div className="flex items-center">
+          <AddLoom taskId={taskId || 0} loomUrl={selectedTask?.loomUrl} />
+        </div>
+      )}
       <div className="flex items-center gap-4">
         <Button
           className="bg-blue-600 hover:bg-blue-700"
@@ -447,7 +439,9 @@ export default function TaskModal({
             project={formData.project}
             assigneeValue={formData.assignees}
             date={formData.date}
+            selectedTask={selectedTask}
             taskId={selectedTask?.id ? parseInt(selectedTask.id) : null}
+            loomUrl={selectedTask?.loomUrl}
           />
         </div>
       </DialogContent>

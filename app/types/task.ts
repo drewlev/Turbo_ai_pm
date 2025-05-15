@@ -14,6 +14,7 @@ export type UITask = {
     id: number;
   }[];
   projectId?: number;
+  loomUrl?: string;
 };
 
 export function transformTasksForUI(tasks: TaskWithAssigneesType[]): UITask[] {
@@ -32,6 +33,7 @@ export function transformTasksForUI(tasks: TaskWithAssigneesType[]): UITask[] {
       }))
       .filter((a) => a.label !== ""),
     projectId: task.projectId || undefined,
+    loomUrl: task.looms?.[0]?.loomUrl || undefined,
   }));
 }
 

@@ -1,15 +1,15 @@
 "use server";
 
 import db from "@/app/db";
-import { tasks, taskAssignees, users } from "@/app/db/schema";
+import { tasks, taskAssignees, users, looms } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export type TaskWithAssigneesType = typeof tasks.$inferSelect & {
   taskAssignees: (typeof taskAssignees.$inferSelect & {
-    // Include taskAssignee data...
-    user: typeof users.$inferSelect; // ...and the nested user data
+    user: typeof users.$inferSelect;
   })[];
+  looms?: (typeof looms.$inferSelect)[];
 };
 
 // Get all tasks
@@ -22,6 +22,7 @@ export async function getTasks(): Promise<TaskWithAssigneesType[]> {
         },
       },
       project: true,
+      looms: true,
     },
   });
   return tasks;
