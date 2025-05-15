@@ -23,7 +23,6 @@ import { StackedInitials } from "@/components/stacked-avatars";
 import { StatusButton } from "@/components/tasks/status-button";
 import { daysOutDisplayer } from "@/lib/date-and-time";
 import { ColumnDef } from "@tanstack/react-table";
-
 const columns: ColumnDef<TaskTableTask>[] = [
   {
     id: "select",
@@ -98,6 +97,7 @@ interface TaskTableClientProps {
     title: string;
     url: string;
   }[];
+  availableAssignees: any[];
 }
 
 export function TaskTableClient({
@@ -105,6 +105,7 @@ export function TaskTableClient({
   title,
   count,
   projects,
+  availableAssignees,
 }: TaskTableClientProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [selectedTask, setSelectedTask] = useState<TaskTableTask | null>(null);
@@ -203,6 +204,7 @@ export function TaskTableClient({
           onOpenChange={setDialogOpen}
           selectedTask={selectedTask}
           projects={projects}
+          availableAssignees={availableAssignees}
         />
       )}
     </div>

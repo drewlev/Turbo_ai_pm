@@ -27,6 +27,11 @@ export async function getTasks(): Promise<TaskWithAssigneesType[]> {
   return tasks;
 }
 
+export async function getAvailableAssignees() {
+  const availableAssignees = await db.query.users.findMany({});
+  return availableAssignees;
+}
+
 // get taks based on project id
 export async function getTasksByProjectId(
   projectId: number

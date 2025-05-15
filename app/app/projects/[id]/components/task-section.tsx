@@ -7,7 +7,7 @@ import { KanbanBoard } from "@/components/kanban-board";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { List, LayoutGrid } from "lucide-react";
 import { getActiveProjects } from "@/app/actions/projects";
-
+import { getAvailableAssignees } from "@/app/actions/tasks";
 export async function TasksSection({
   tasks,
 }: {
@@ -20,7 +20,7 @@ export async function TasksSection({
     title: project.name,
     url: project.id.toString(),
   }));
-
+  const availableAssignees = await getAvailableAssignees();
   return (
     <section className="mb-8">
       <div className="flex justify-between items-center mb-4">
@@ -51,6 +51,7 @@ export async function TasksSection({
               title="All Tasks"
               count={tasks.length}
               projects={projects}
+              availableAssignees={availableAssignees}
             />
           </TabsContent>
 

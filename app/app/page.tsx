@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { TaskTableClient } from "@/components/tasks/task-table-client";
 import { KanbanBoard } from "@/components/kanban-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getTasks } from "@/app/actions/tasks";
+import { getAvailableAssignees, getTasks } from "@/app/actions/tasks";
 import { transformTasksForUI } from "@/app/types/task";
 import { getActiveProjects } from "@/app/actions/projects";
 
@@ -14,6 +14,7 @@ export default async function TaskManagementApp() {
   const tasks = await getTasks();
   const transformedTasks = transformTasksForUI(tasks);
   const activeProjects = await getActiveProjects();
+  const availableAssignees = await getAvailableAssignees();
   const projects = activeProjects.map((project) => ({
     id: project.id,
     title: project.name,
@@ -62,6 +63,7 @@ export default async function TaskManagementApp() {
             title="Todo"
             count={tasks.length}
             projects={projects}
+            availableAssignees={availableAssignees}
           />
         </TabsContent>
         <TabsContent value="kanban">

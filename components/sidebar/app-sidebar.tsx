@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NewTask from "@/components/tasks/new-task";
+import { getAvailableAssignees } from "@/app/actions/tasks";
 import { Clipboard, Map, UserPlus, HelpCircle } from "lucide-react";
 import {
   Sidebar,
@@ -28,6 +29,8 @@ const listProjects = projects.map((project) => ({
   url: `/app/projects/${project.id}`,
   id: project.id,
 }));
+
+const availableAssignees = await getAvailableAssignees();
 
 // users to view and assign tasks
 const users = await getUsers();
@@ -68,7 +71,10 @@ export async function AppSidebar() {
           </Avatar>
         </div>
 
-        <NewTask assignee={listUsers} projects={listProjects} />
+        <NewTask
+          availableAssignees={availableAssignees}
+          projects={listProjects}
+        />
         <ClientSidebarMenu />
       </SidebarHeader>
 

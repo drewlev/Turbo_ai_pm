@@ -242,63 +242,59 @@ export default function TaskModal({
   onOpenChange,
   selectedTask,
   projects,
+  availableAssignees,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedTask: TaskTableTask | null;
   projects: { title: string; url: string; id: number }[];
+  availableAssignees: { id: number; name: string }[];
 }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState("");
-  const [priority, setPriority] = useState("");
-  const [project, setProject] = useState<{ url: string; id: number } | null>(
-    null
-  );
-  const [assigneeValue, setAssigneeValue] = useState<
-    { url: string; id: number }[]
-  >([]);
-  const [date, setDate] = useState("");
-  const [taskId, setTaskId] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    status: "",
+    priority: "",
+    project: null as { url: string; id: number } | null,
+    assignees: [] as { url: string; id: number }[],
+    date: "",
+  });
 
-  // Initialize or reset state when dialog opens/closes
+  // Initialize form when dialog opens with a task
   useEffect(() => {
     if (open && selectedTask) {
-      // Initialize state when dialog opens with a selected task
-      setDescription(selectedTask.description || "");
-      setTitle(selectedTask.title || "");
-      setStatus(selectedTask.status || "");
-      setPriority(selectedTask.priority || "");
-      setProject(
-        selectedTask.projectId
+      setFormData({
+        title: selectedTask.title || "",
+        description: selectedTask.description || "",
+        status: selectedTask.status || "",
+        priority: selectedTask.priority || "",
+        project: selectedTask.projectId
           ? {
               url: selectedTask.projectId.toString(),
               id: selectedTask.projectId,
             }
-          : null
-      );
-      setAssigneeValue(
-        selectedTask.assignedTo?.map((a) => ({ url: a.url, id: a.id })) || []
-      );
-      setDate(selectedTask.dueDate || "");
-      setTaskId(selectedTask.id ? parseInt(selectedTask.id) : null);
+          : null,
+        assignees:
+          selectedTask.assignedTo?.map((a) => ({ url: a.url, id: a.id })) || [],
+        date: selectedTask.dueDate || "",
+      });
     } else if (!open) {
-      // Reset state when dialog closes
-      setTitle("");
-      setDescription("");
-      setPriority("");
-      setProject(null);
-      setAssigneeValue([]);
-      setDate("");
-      setTaskId(null);
+      setFormData({
+        title: "",
+        description: "",
+        status: "",
+        priority: "",
+        project: null,
+        assignees: [],
+        date: "",
+      });
     }
   }, [open, selectedTask]);
 
-  const assigneeOptions: Option[] =
-    selectedTask?.assignedTo?.map((user) => ({
-      value: user.id.toString(),
-      label: user.label,
-    })) || [];
+  const assigneeOptions: Option[] = availableAssignees.map((user) => ({
+    value: user.id.toString(),
+    label: user.name,
+  }));
 
   const projectOptions: Option[] = projects.map((project) => ({
     value: project.id.toString(),
@@ -307,73 +303,61 @@ export default function TaskModal({
 
   const handleCreateTask = async () => {
     try {
-      const formData: TaskFormData = {
-        title,
-        description,
-        priority,
-        projectId: project?.id || 0,
-        assigneeIds: assigneeValue.map((a) => a.id),
-      };
+      const validatedData = taskFormSchema.parse({
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        projectId: formData.project?.id || 0,
+        assigneeIds: formData.assignees.map((a) => a.id),
+      });
 
-      const validatedData = taskFormSchema.parse(formData);
-      const dueDate = date ? new Date(date) : undefined;
+      const dueDate = formData.date ? new Date(formData.date) : undefined;
 
-      if (taskId) {
-        const result = await updateTask(taskId, {
-          title: validatedData.title,
-          description: validatedData.description,
-          priority: validatedData.priority,
-          projectId: validatedData.projectId,
+      if (selectedTask) {
+        const result = await updateTask(parseInt(selectedTask.id), {
+          ...validatedData,
           dueDate,
           assigneeID: validatedData.assigneeIds,
         });
 
         if (result) {
           toast.success("Task updated successfully!");
-        } else {
-          throw new Error("Failed to update task");
+          onOpenChange(false);
         }
       } else {
         const result = await createTaskAndAssign({
-          title: validatedData.title,
-          description: validatedData.description,
-          priority: validatedData.priority,
-          projectId: validatedData.projectId,
-          assigneeID: validatedData.assigneeIds,
+          ...validatedData,
           dueDate,
+          assigneeID: validatedData.assigneeIds,
         });
 
-        if (result.success && result.taskId) {
-          setTaskId(result.taskId);
+        if (result.success) {
           toast.success("Task created successfully!");
-        } else {
-          throw new Error("Failed to create task");
+          onOpenChange(false);
         }
       }
-      onOpenChange(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errorMessages = error.errors.map((err) => err.message).join("\n");
-        toast.error(errorMessages);
+        toast.error(error.errors.map((err) => err.message).join("\n"));
       } else {
         toast.error("Failed to save task");
       }
     }
   };
 
-  const handleStatusUpdated = (taskId: number, newStatus: string) => {
-    setStatus(newStatus);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden">
         <VisuallyHidden>
-          <DialogTitle>{taskId ? "Edit Task" : "Create New Task"}</DialogTitle>
+          <DialogTitle>
+            {selectedTask ? "Edit Task" : "Create New Task"}
+          </DialogTitle>
         </VisuallyHidden>
         <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
           <div className="flex items-center gap-2">
-            <span className="text-sm">{taskId ? "Edit Task" : "New Task"}</span>
+            <span className="text-sm">
+              {selectedTask ? "Edit Task" : "New Task"}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <DialogClose asChild>
@@ -385,17 +369,26 @@ export default function TaskModal({
         </div>
 
         <TaskForm
-          title={title}
-          description={description}
-          onTitleChange={setTitle}
-          onDescriptionChange={setDescription}
+          title={formData.title}
+          description={formData.description}
+          onTitleChange={(value) =>
+            setFormData((prev) => ({ ...prev, title: value }))
+          }
+          onDescriptionChange={(value) =>
+            setFormData((prev) => ({ ...prev, description: value }))
+          }
         />
 
         <div className="p-4 border-t border-[#2a2a2a]">
           <div className="flex flex-wrap gap-2 mb-4">
-            <PriorityButton priority={priority} onValueChange={setPriority} />
+            <PriorityButton
+              priority={formData.priority}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, priority: value }))
+              }
+            />
             <AssigneeButton
-              assigneeValue={assigneeValue}
+              assigneeValue={formData.assignees}
               assigneeOptions={assigneeOptions}
               onValueChange={(value) => {
                 const selectedIds = value;
@@ -407,52 +400,54 @@ export default function TaskModal({
                     return option ? { url: id, id: parseInt(id) } : null;
                   })
                   .filter((a): a is { url: string; id: number } => a !== null);
-                setAssigneeValue(selectedAssignees);
+                setFormData((prev) => ({
+                  ...prev,
+                  assignees: selectedAssignees,
+                }));
               }}
             />
-            {taskId && (
+            {selectedTask && (
               <StatusButton
-                status={status}
-                taskId={taskId}
-                onStatusUpdated={handleStatusUpdated}
+                status={formData.status}
+                taskId={parseInt(selectedTask.id)}
+                onStatusUpdated={(newStatus) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    status: String(newStatus),
+                  }))
+                }
               />
             )}
             <ProjectButton
-              project={project}
+              project={formData.project}
               projectOptions={projectOptions}
               onValueChange={(value) => {
                 const option = projectOptions.find(
                   (opt) => opt.value === value
                 );
-                setProject(option ? { url: value, id: parseInt(value) } : null);
+                setFormData((prev) => ({
+                  ...prev,
+                  project: option ? { url: value, id: parseInt(value) } : null,
+                }));
               }}
             />
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
-            >
-              <MessageSquare className="w-3 h-3" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
-            >
-              <MoreHorizontal className="w-3 h-3" />
-            </Button>
-            <DateButton date={date} onValueChange={setDate} />
+            <DateButton
+              date={formData.date}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, date: value }))
+              }
+            />
           </div>
 
           <TaskActions
             onCreateTask={handleCreateTask}
-            title={title}
-            description={description}
-            priority={priority}
-            project={project}
-            assigneeValue={assigneeValue}
-            date={date}
-            taskId={taskId}
+            title={formData.title}
+            description={formData.description}
+            priority={formData.priority}
+            project={formData.project}
+            assigneeValue={formData.assignees}
+            date={formData.date}
+            taskId={selectedTask?.id ? parseInt(selectedTask.id) : null}
           />
         </div>
       </DialogContent>
