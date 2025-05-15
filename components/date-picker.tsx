@@ -14,38 +14,37 @@ import {
 } from "@/components/ui/popover";
 
 export function DatePicker({
-  date,
+  date: existingDate,
   onValueChange,
 }: {
-  date: string;
-  onValueChange: (value: string) => void;
+  date: Date;
+  onValueChange: (date: Date) => void;
 }) {
-  const [newDate, setNewDate] = React.useState<Date>(new Date(date));
+  const [date, setDate] = React.useState<Date>(existingDate);
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
+          size={"sm"}
           className={cn(
-            " justify-start text-left font-normal",
-            !date && "text-muted-foreground",
-            "h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
+            "text-gray-300  border-[#2a2a2a] hover:bg-[#2a2a2a] hover:bg-[#2a2a2a] hover:text-white border-1  justify-start text-left text-xs font-normal ",
+            !date && "text-muted-foreground"
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>Due Date</span>}
+          <CalendarIcon  className="mr-2 h-4 w-4" />
+          {date ? format(date, "PPP") : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-[var(--background-dark)]">
+      <PopoverContent className="w-auto p-0 ">
         <Calendar
+          className="flex flex-row"
           mode="single"
-          selected={newDate}
-          onSelect={(value) => {
-            setNewDate(value as Date);
-            onValueChange(format(value as Date, "MM-dd-yyyy"));
-          }}
+          selected={date}
+          onSelect={setDate}
           initialFocus
+          required
         />
       </PopoverContent>
     </Popover>

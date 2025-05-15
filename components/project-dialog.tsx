@@ -174,7 +174,7 @@ export default function ProjectModal({
   if (onboardingLink) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden">
+        <DialogContent className="p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden">
           <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
             <div className="flex items-center gap-2">
               <span className="text-sm">Project Created Successfully</span>
@@ -230,7 +230,7 @@ export default function ProjectModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden">
+      <DialogContent className="p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden">
         <VisuallyHidden>
           <DialogTitle>Create New Project</DialogTitle>
         </VisuallyHidden>

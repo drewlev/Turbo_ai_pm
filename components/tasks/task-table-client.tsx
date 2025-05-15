@@ -40,6 +40,7 @@ const columns: ColumnDef<TaskTableTask>[] = [
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
         className="border-[var(--border-dark)]"
+        onClick={(e) => e.stopPropagation()}
       />
     ),
     enableSorting: false,

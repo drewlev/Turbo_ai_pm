@@ -64,6 +64,7 @@ export const StatusButton = ({
           variant="outline"
           size="sm"
           className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
+          onClick={(e) => e.stopPropagation()}
         >
           {status ? (
             <>

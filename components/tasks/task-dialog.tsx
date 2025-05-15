@@ -29,7 +29,12 @@ const DateButton = ({
   date: string;
   onValueChange: (value: string) => void;
 }) => {
-  return <DatePicker date={date} onValueChange={onValueChange} />;
+  return (
+    <DatePicker
+      date={date ? new Date(date) : new Date()}
+      onValueChange={(d) => d && onValueChange(d.toISOString())}
+    />
+  );
 };
 
 const AssigneeButton = ({
@@ -159,12 +164,12 @@ const TaskForm = ({
   onDescriptionChange: (value: string) => void;
 }) => {
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 ">
       <Input
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
         placeholder="Task title"
-        className="border-none bg-transparent text-lg font-medium placeholder:text-gray-500 focus-visible:ring-0 p-0"
+        className="border-none bg-transparent text-2xl font-bold placeholder:text-gray-500 focus-visible:ring-0 p-0"
       />
       <Textarea
         value={description}
@@ -339,7 +344,7 @@ export default function TaskModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden">
+      <DialogContent className="w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden !max-w-none">
         <VisuallyHidden>
           <DialogTitle>
             {selectedTask ? "Edit Task" : "Create New Task"}
@@ -372,7 +377,7 @@ export default function TaskModal({
         />
 
         <div className="p-4 border-t border-[#2a2a2a]">
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4 ">
             <PriorityButton
               priority={formData.priority}
               onValueChange={(value) =>
