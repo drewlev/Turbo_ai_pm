@@ -14,7 +14,7 @@ export default function InternalPage() {
         console.log(transcript);
       }}>Fetch Transcript</Button>
       <Button onClick={async () => {
-        await publishQStashMessage("https://www.google.com", "Hello, world!", 10, "1234");
+        await publishQStashMessage();
       }}>Publish QStash Message</Button>
     </div>
   );
