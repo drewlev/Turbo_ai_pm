@@ -33,7 +33,6 @@ export const googleCalendar = pgTable("google_calendar", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-
 export const calendarEvents = pgTable("calendar_events", {
   id: text("id").primaryKey(), // '7ni1ktubh5s95dc86g2rer71d3'
   kind: text("kind"), // 'calendar#event'
@@ -47,6 +46,7 @@ export const calendarEvents = pgTable("calendar_events", {
   sequence: integer("sequence"), // 2
   hangoutLink: text("hangout_link"), // Google Meet link
   eventType: text("event_type"), // 'default'
+  qstashMessageId: text("qstash_message_id"), // ID of the scheduled reminder in QStash
 
   // JSON fields
   creator: jsonb("creator"), // name, email, etc.
@@ -58,7 +58,6 @@ export const calendarEvents = pgTable("calendar_events", {
   conferenceData: jsonb("conference_data"),
   reminders: jsonb("reminders"),
 });
-
 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
@@ -204,7 +203,6 @@ export const userRelations = relations(users, ({ many }) => ({
   taskAssignees: many(taskAssignees),
   googleCalendar: many(googleCalendar),
   looms: many(looms),
-
 }));
 
 // Project Relations

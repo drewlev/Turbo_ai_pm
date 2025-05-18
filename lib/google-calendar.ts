@@ -1,10 +1,55 @@
 import db from "@/app/db";
 import { calendarEvents, googleCalendar } from "@/app/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import {
   fetchUpdatedEvents,
   getUserOauthAccessToken,
 } from "@/app/actions/google-calendar";
+import {
+  scheduleReminder,
+  cancelReminder,
+} from "@/app/actions/schdule-reminder";
+
+export interface EventType {
+  kind: string;
+  etag: string;
+  id: string;
+  status: string;
+  htmlLink: string;
+  created: string; // Or Date, depending on safeDateParser
+  updated: string; // Or Date, depending on safeDateParser
+  summary: string;
+  creator: { email: string };
+  organizer: { email: string };
+  start: Date | null; // Or Date, depending on safeDateParser and null handling
+  end: Date | null; // Or Date, depending on safeDateParser and null handling
+  recurrence?: string[];
+  transparency?: string;
+  visibility?: string;
+  iCalUID: string;
+  sequence: number;
+  reminders: any; // Define this type more precisely if possible
+  birthdayProperties?: any; // Define this type
+  eventType?: string;
+  attendees?: { email: string; responseStatus: string; organizer?: boolean }[];
+  hangoutLink?: string;
+  conferenceData?: {
+    entryPoints: {
+      uri: string;
+      label: string;
+      entryPointType: string;
+      pin?: string;
+      regionCode?: string; // Only for phone type
+    }[];
+    conferenceId: string;
+    conferenceSolution: {
+      key: { type: string };
+      name: string;
+      iconUri: string;
+    };
+  };
+}
+
 export async function getUserFromChannelId(channelId: string) {
   const user = await db.query.googleCalendar.findFirst({
     where: eq(googleCalendar.channelId, channelId),
@@ -97,16 +142,49 @@ export async function channelToStoreCalendarEvent(channel_id: string) {
       try {
         if (event.status === "cancelled") {
           console.log(`[watchCalendar] Updating cancelled event: ${event.id}`);
-          await db
+          const insertedEvent = await db
             .update(calendarEvents)
             .set({ status: "cancelled" })
             .where(eq(calendarEvents.id, event.id));
         } else if (event.status === "confirmed") {
           console.log(`[watchCalendar] Upserting confirmed event: ${event.id}`);
-          await db.insert(calendarEvents).values(event).onConflictDoUpdate({
-            target: calendarEvents.id,
-            set: event,
-          });
+
+          const result = await db
+            .insert(calendarEvents)
+            .values(event)
+            .onConflictDoUpdate({
+              target: calendarEvents.id,
+              set: event,
+            })
+            .returning({
+              wasInsert: sql<boolean>`CASE WHEN xmax = 0 THEN true ELSE false END`,
+            });
+
+          const wasInsert = result[0]?.wasInsert;
+
+          if (!wasInsert) {
+            // This was an update, so we need to cancel the previous reminder
+            const existingEvent = await db.query.calendarEvents.findFirst({
+              where: eq(calendarEvents.id, event.id),
+            });
+
+            if (existingEvent?.qstashMessageId) {
+              console.log(
+                `[watchCalendar] Cancelling previous reminder for event: ${event.id}`
+              );
+              await cancelReminder(existingEvent.qstashMessageId);
+            }
+          }
+
+          const reminderResponse = await scheduleReminder(event as EventType);
+
+          // Update the event with the new message ID
+          if (reminderResponse?.messageId) {
+            await db
+              .update(calendarEvents)
+              .set({ qstashMessageId: reminderResponse.messageId })
+              .where(eq(calendarEvents.id, event.id));
+          }
         } else {
           console.log(
             `[watchCalendar] Skipping event with status: ${event.status}`

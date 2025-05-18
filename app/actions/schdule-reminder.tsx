@@ -3,13 +3,7 @@
 import { headers } from "next/headers";
 import { format, subHours, getUnixTime } from "date-fns";
 import { Client } from "@upstash/qstash";
-
-interface Attendee {
-  self?: boolean;
-  email?: string | null;
-  organizer?: boolean;
-  responseStatus?: string;
-}
+import { EventType } from "@/lib/google-calendar";
 
 // Initialize the Upstash Qstash client
 const qstash = new Client({
@@ -18,24 +12,80 @@ const qstash = new Client({
 
 const qstashUrl = process.env.NEXTAUTH_URL + "/api/qstash";
 
-const scheduledTime = Math.floor(Date.now() / 1000) + 60; // Calculate 1 minute from now in Unix timestamp
-const payload = { your: "payload" };
-
-export async function publishQStashMessage() {
-  const response = await qstash.publishJSON({
-    url: qstashUrl,
-    body: payload,
-    notBefore: scheduledTime,
-  });
-
-  console.log(response);
-  return response;
+interface ReminderPayload {
+  eventId: string;
+  reminderTime: string;
 }
 
+export async function publishQStashMessage(
+  notBefore: number,
+  payload: ReminderPayload
+) {
+  try {
+    const response = await qstash.publishJSON({
+      url: qstashUrl,
+      body: payload,
+      notBefore,
+    });
+    console.log("[QStash] Message published successfully:", response);
+    return response;
+  } catch (error) {
+    console.error("[QStash] Failed to publish message:", error);
+    throw error;
+  }
+}
 
-export async function scheduleReminder() {
-  const eventKeyWords = ["design review", "kick off"]
+export async function cancelReminder(messageId: string) {
+  try {
+    const response = await fetch(
+      `https://qstash.upstash.io/v2/messages/${messageId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${process.env.QSTASH_TOKEN}`,
+        },
+      }
+    );
+    console.log("[QStash] Message deleted successfully:", response);
+    return response;
+  } catch (error) {
+    console.error("[QStash] Failed to delete message:", error);
+    throw error;
+  }
+}
 
-  
+export async function scheduleReminder(event: EventType) {
+  const eventKeyWords = ["design review", "kick off"];
+  const isRelevantEvent = eventKeyWords.some((keyword) =>
+    event.summary.toLowerCase().includes(keyword)
+  );
 
+  if (!isRelevantEvent) {
+    console.log(
+      "[Reminder] Event is not a design review or kick off:",
+      event.summary
+    );
+    return;
+  }
+
+  if (!event.start) {
+    console.log("[Reminder] Event has no start time:", event.summary);
+    return;
+  }
+
+  console.log("[Reminder] Scheduling reminder for event:", event.summary);
+
+  const reminderTime = new Date(event.start);
+  reminderTime.setHours(reminderTime.getHours() - 24); // Subtract 24 hours
+
+  const reminderPayload: ReminderPayload = {
+    eventId: event.id,
+    reminderTime: reminderTime.toISOString(),
+  };
+
+  const response = await publishQStashMessage(
+    getUnixTime(reminderTime),
+    reminderPayload
+  );
+  return response;
 }
