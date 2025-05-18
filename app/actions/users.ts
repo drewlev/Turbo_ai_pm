@@ -3,22 +3,31 @@ import { users } from "@/app/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 
-
 // used for assignee dropdown
 export async function getUsers() {
   const users = await db.query.users.findMany();
-  
+
   return users;
 }
 
-export async function clerkIdToSerialId() {
-  const { userId: clerkId } = await auth();
+export async function clerkIdToSerialId(inputedClerkId?: string) {
+  let clerkId = inputedClerkId;
+
   if (!clerkId) {
-    throw new Error("Unauthorized");
+    const authData = await auth();
+    if (!authData?.userId) {
+      throw new Error("Unauthorized");
+    }
+    clerkId = authData.userId;
   }
-  const userSerialId = await db.query.users.findFirst({ where: eq(users.clerkId, clerkId) });
-  if (!userSerialId) {
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  if (!user) {
     throw new Error("User not found");
   }
-  return userSerialId.id;
+
+  return user.id;
 }

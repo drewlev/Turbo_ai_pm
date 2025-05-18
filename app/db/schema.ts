@@ -8,6 +8,7 @@ import {
   numeric,
   unique,
   boolean,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -18,6 +19,46 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   role: text("role").notNull().default("designer"),
 });
+
+export const googleCalendar = pgTable("google_calendar", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  channelId: text("channel_id").notNull(),
+  resourceId: text("resource_id").notNull(),
+  resourceUri: text("resource_uri").notNull(),
+  expiration: timestamp("expiration").notNull(),
+  // accessToken: text("access_token").notNull(), // new
+  syncToken: text("sync_token"), // new
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+
+export const calendarEvents = pgTable("calendar_events", {
+  id: text("id").primaryKey(), // '7ni1ktubh5s95dc86g2rer71d3'
+  kind: text("kind"), // 'calendar#event'
+  etag: text("etag"), // '"3494307509621470"'
+  status: text("status"), // 'confirmed'
+  htmlLink: text("html_link"), // full URL
+  created: timestamp("created", { withTimezone: true }), // '2025-03-27T16:10:40.000Z'
+  updated: timestamp("updated", { withTimezone: true }), // '2025-05-13T16:29:14.810Z'
+  summary: text("summary"), // 'Drew | Protocoding Weekly'
+  iCalUID: text("ical_uid"), // '7ni1ktubh5s95dc86g2rer71d3@google.com'
+  sequence: integer("sequence"), // 2
+  hangoutLink: text("hangout_link"), // Google Meet link
+  eventType: text("event_type"), // 'default'
+
+  // JSON fields
+  creator: jsonb("creator"), // name, email, etc.
+  organizer: jsonb("organizer"),
+  start: jsonb("start"),
+  end: jsonb("end"),
+  recurrence: jsonb("recurrence"),
+  attendees: jsonb("attendees"),
+  conferenceData: jsonb("conference_data"),
+  reminders: jsonb("reminders"),
+});
+
 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
@@ -161,6 +202,9 @@ export const looms = pgTable("looms", {
 // User Relations
 export const userRelations = relations(users, ({ many }) => ({
   taskAssignees: many(taskAssignees),
+  googleCalendar: many(googleCalendar),
+  looms: many(looms),
+
 }));
 
 // Project Relations
@@ -295,6 +339,13 @@ export const loomRelations = relations(looms, ({ one }) => ({
   }),
   user: one(users, {
     fields: [looms.userId],
+    references: [users.id],
+  }),
+}));
+
+export const googleCalendarRelations = relations(googleCalendar, ({ one }) => ({
+  user: one(users, {
+    fields: [googleCalendar.userId],
     references: [users.id],
   }),
 }));
