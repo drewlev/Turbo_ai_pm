@@ -145,7 +145,12 @@ export async function channelToStoreCalendarEvent(channel_id: string) {
           const insertedEvent = await db
             .update(calendarEvents)
             .set({ status: "cancelled" })
-            .where(eq(calendarEvents.id, event.id));
+            .where(eq(calendarEvents.id, event.id))
+            .returning({ qstashMessageId: calendarEvents.qstashMessageId });
+
+          if (insertedEvent[0]?.qstashMessageId) {
+            await cancelReminder(insertedEvent[0].qstashMessageId);
+          }
         } else if (event.status === "confirmed") {
           console.log(`[watchCalendar] Upserting confirmed event: ${event.id}`);
 

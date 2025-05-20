@@ -18,6 +18,7 @@ export const users = pgTable("users", {
   name: text("name"),
   email: text("email").notNull().unique(),
   role: text("role").notNull().default("designer"),
+  slackUserId: text("slack_user_id"),
 });
 
 export const googleCalendar = pgTable("google_calendar", {
