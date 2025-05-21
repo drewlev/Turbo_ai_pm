@@ -9,6 +9,7 @@ interface FirefliesWebhookEvent {
   eventType: string;
 }
 
+
 export async function POST(request: NextRequest) {
   try {
     // Get user ID from the URL path
