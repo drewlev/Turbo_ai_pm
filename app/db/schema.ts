@@ -240,11 +240,15 @@ export const looms = pgTable("looms", {
 // Relations
 
 // User Relations
-export const userRelations = relations(users, ({ many }) => ({
+export const userRelations = relations(users, ({ many, one }) => ({
   taskAssignees: many(taskAssignees),
   googleCalendar: many(googleCalendar),
   looms: many(looms),
   userProjects: many(userProjects),
+  slackUser: one(slackUsers, {
+    fields: [users.id],
+    references: [slackUsers.userId],
+  }),
 }));
 
 // Project Relations
@@ -416,6 +420,10 @@ export const slackUserRelations = relations(slackUsers, ({ one }) => ({
   slackInstallation: one(slackInstallations, {
     fields: [slackUsers.slackTeamId],
     references: [slackInstallations.slackTeamId],
+  }),
+  user: one(users, {
+    fields: [slackUsers.userId],
+    references: [users.id],
   }),
 }));
 

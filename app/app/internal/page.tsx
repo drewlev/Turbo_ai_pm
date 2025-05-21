@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { publishQStashMessage } from "@/app/actions/schdule-reminder";
 import { createSlackOAuthUrl, sendMessageToSlack } from "@/app/actions/slack";
 import { SignInButton } from "@clerk/nextjs";
-import { IdenifyProjectByEvent } from "@/app/actions/automations/automessage";
+import { identifyProjectByEvent } from "@/app/actions/automations/automessage";
 import { UserProfile } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 export default function InternalPage() {
@@ -39,7 +39,7 @@ export default function InternalPage() {
       <UserProfile />
       <Button
         onClick={async () => {
-          await IdenifyProjectByEvent("4gi3p0s896ctpitd1ctggp15ab");
+          await identifyProjectByEvent("4gi3p0s896ctpitd1ctggp15ab");
         }}
       >
         Identify Project by Event
