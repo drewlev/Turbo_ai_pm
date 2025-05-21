@@ -25,6 +25,15 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("designer"),
 });
 
+export const userSettings = pgTable("user_settings", {
+  id: serial("id").primaryKey(),
+  firefliesApiKey: text("fireflies_api_key"),
+  userId: integer("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id),
+});
+
 export const slackUsers = pgTable("slack_users", {
   id: serial("id").primaryKey(),
   slackUserId: text("slack_user_id").notNull().unique(),
@@ -191,6 +200,14 @@ export const speakers = pgTable(
   })
 );
 
+export const importTranscripts = pgTable("import_transcripts", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").notNull(), // FK to meetings.id
+  transcriptUrl: text("transcript_url").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const sentences = pgTable("sentences", {
   id: serial("id").primaryKey(),
   meetingId: integer("meeting_id").notNull(), // FK to meetings.id
@@ -248,6 +265,17 @@ export const userRelations = relations(users, ({ many, one }) => ({
   slackUser: one(slackUsers, {
     fields: [users.id],
     references: [slackUsers.userId],
+  }),
+  userSettings: one(userSettings, {
+    fields: [users.id],
+    references: [userSettings.userId],
+  }),
+}));
+
+export const userSettingsRelations = relations(userSettings, ({ one }) => ({
+  user: one(users, {
+    fields: [userSettings.userId],
+    references: [users.id],
   }),
 }));
 
@@ -322,6 +350,14 @@ export const meetingRelations = relations(meetings, ({ one, many }) => ({
   sentences: many(sentences),
   speakers: many(speakers),
   participants: many(participants),
+  importTranscripts: one(importTranscripts),
+}));
+
+export const importTranscriptRelations = relations(importTranscripts, ({ one }) => ({
+  meeting: one(meetings, {
+    fields: [importTranscripts.meetingId],
+    references: [meetings.id],
+  }),
 }));
 
 // Sentence Relations

@@ -142,6 +142,8 @@ async function fetchFirefliesTranscript(
   }
 }
 
+
+//how do i add a projectId to the meeting?
 export async function createMeeting(meetingData: typeof meetings.$inferInsert) {
   const [createdMeeting] = await db
     .insert(meetings)

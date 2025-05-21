@@ -1,12 +1,10 @@
 "use client";
 import { importFirefliesTranscript } from "@/lib/fireflies";
 import { Button } from "@/components/ui/button";
-import { publishQStashMessage } from "@/app/actions/schdule-reminder";
 import { createSlackOAuthUrl, sendMessageToSlack } from "@/app/actions/slack";
-import { SignInButton } from "@clerk/nextjs";
-import { identifyProjectByEvent } from "@/app/actions/automations/automessage";
-import { UserProfile } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { meetingToNotes } from "@/app/actions/automations/meeting-ai";
+
 export default function InternalPage() {
   return (
     <div>
@@ -36,13 +34,12 @@ export default function InternalPage() {
       >
         Send Message to Slack
       </Button>
-      <UserProfile />
       <Button
         onClick={async () => {
-          await identifyProjectByEvent("4gi3p0s896ctpitd1ctggp15ab");
+          await meetingToNotes(2);
         }}
       >
-        Identify Project by Event
+        test{" "}
       </Button>
     </div>
   );
