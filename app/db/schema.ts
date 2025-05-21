@@ -251,6 +251,7 @@ export const userRelations = relations(users, ({ many }) => ({
 export const projectRelations = relations(projects, ({ many }) => ({
   tasks: many(tasks),
   userProjects: many(userProjects),
+  clients: many(clients),
 }));
 
 export const userProjectRelations = relations(userProjects, ({ one }) => ({
@@ -263,6 +264,15 @@ export const userProjectRelations = relations(userProjects, ({ one }) => ({
     references: [projects.id],
   }),
 }));
+
+export const clients = pgTable("clients", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  projectId: integer("project").references(() => projects.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
 
 // Task Relations
 export const taskRelations = relations(tasks, ({ one, many }) => ({
@@ -399,5 +409,20 @@ export const googleCalendarRelations = relations(googleCalendar, ({ one }) => ({
   user: one(users, {
     fields: [googleCalendar.userId],
     references: [users.id],
+  }),
+}));
+
+export const slackUserRelations = relations(slackUsers, ({ one }) => ({
+  slackInstallation: one(slackInstallations, {
+    fields: [slackUsers.slackTeamId],
+    references: [slackInstallations.slackTeamId],
+  }),
+}));
+
+// Client Relations: A client belongs to one company
+export const clientRelations = relations(clients, ({ one }) => ({
+  project: one(projects, {
+    fields: [clients.projectId],
+    references: [projects.id],
   }),
 }));

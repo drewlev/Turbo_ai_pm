@@ -54,6 +54,7 @@ export async function cancelReminder(messageId: string) {
   }
 }
 
+// This schdulels a reminder specofic events like  a design review or kick off event
 export async function scheduleReminder(event: EventType) {
   const eventKeyWords = ["design review", "kick off"];
   const isRelevantEvent = eventKeyWords.some((keyword) =>

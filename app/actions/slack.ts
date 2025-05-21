@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/app/db";
-import { users, slackUsers } from "@/app/db/schema";
+import { users, slackUsers, teams } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@clerk/nextjs/server";
 import { clerkIdToSerialId } from "./users";
@@ -28,22 +28,30 @@ interface SlackOAuthResponse {
 }
 
 export const sendMessageToSlack = async (message: string, userId: number) => {
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
+  //   const slackUserId = user.slackUserId;
+  const slackUser = await db.query.slackUsers.findFirst({
+    where: eq(slackUsers.userId, userId),
+    with: {
+      slackInstallation: true,
+    },
   });
 
-  if (!user) {
-    throw new Error("User not found");
+  console.log({ slackUser });
+
+  if (!slackUser) {
+    throw new Error("Slack user not found");
   }
-  //   const slackUserId = user.slackUserId;
-  const slackUserId = "U06SB520XHS";
-  const teamId = "T06S8LUJG7L";
+
   try {
     console.log(
       "Sending request to:",
       process.env.SLACK_WEBHOOK_URL + "/send-reminders"
     );
-    console.log("Request payload:", { message, slackUserId });
+    console.log("Request payload:", {
+      message,
+      slackUserId: slackUser.slackUserId,
+      teamId: slackUser.slackTeamId,
+    });
 
     const response = await fetch(
       process.env.SLACK_WEBHOOK_URL + "/send-reminders",
@@ -52,7 +60,12 @@ export const sendMessageToSlack = async (message: string, userId: number) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message, slackUserId, teamId }),
+        body: JSON.stringify({
+          message,
+          slackUserId: slackUser.slackUserId,
+          teamId: slackUser.slackTeamId,
+          botToken: "placeholder",
+        }),
       }
     );
 
