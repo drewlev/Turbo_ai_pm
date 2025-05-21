@@ -1,7 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
-import { format, subHours, getUnixTime } from "date-fns";
+import { getUnixTime } from "date-fns";
 import { Client } from "@upstash/qstash";
 import { EventType } from "@/lib/google-calendar";
 

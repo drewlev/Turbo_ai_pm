@@ -50,7 +50,8 @@ export function SuccessScreen({ answers, questions }: SuccessScreenProps) {
         transition={{ delay: 0.4 }}
         className="mb-8 max-w-md text-gray-400"
       >
-        Your responses have been submitted successfully. We'll be in touch soon.
+        Your responses have been submitted successfully. We&apos;ll be in touch
+        soon.
       </motion.p>
 
       <motion.div

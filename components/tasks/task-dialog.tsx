@@ -13,9 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createTaskAndAssign, updateTask } from "@/app/actions/tasks";
 import { toast } from "sonner";
-import { StackedInitials } from "@/components/stacked-avatars";
 import { DatePicker } from "@/components/date-picker";
-import { X, Users } from "lucide-react";
+import { X } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Combobox, Option } from "@/components/combobox";
 import { AddLoom } from "@/components/tasks/components/add-loom";
@@ -25,15 +24,15 @@ import { AssigneeButton } from "@/components/assign-users-button";
 
 const DateButton = ({
   date,
-  onValueChange,
+  // onValueChange,
 }: {
   date: string;
-  onValueChange: (value: string) => void;
+  // onValueChange: (value: string) => void;
 }) => {
   return (
     <DatePicker
       date={date ? new Date(date) : new Date()}
-      onValueChange={(d) => d && onValueChange(d.toISOString())}
+      // onValueChange={(d) => d && onValueChange(d.toISOString())}
     />
   );
 };
@@ -52,9 +51,9 @@ const ProjectButton = ({
       options={projectOptions}
       value={project?.id.toString() || ""}
       onValueChange={(value) => {
-        const option = projectOptions.find(
-          (opt) => opt.value === (value as string)
-        );
+        // const option = projectOptions.find(
+        //   (opt) => opt.value === (value as string)
+        // );
         onValueChange(value as string);
       }}
       trigger={
@@ -120,14 +119,7 @@ const TaskForm = ({
 
 const TaskActions = ({
   onCreateTask,
-  title,
-  description,
-  priority,
-  project,
-  assigneeValue,
-  date,
   taskId,
-  loomUrl,
   selectedTask,
 }: {
   onCreateTask: () => void;
@@ -169,7 +161,6 @@ const taskFormSchema = z.object({
   assigneeIds: z.array(z.number()).min(1, "At least one assignee is required"),
 });
 
-type TaskFormData = z.infer<typeof taskFormSchema>;
 
 export default function TaskModal({
   open,
@@ -369,9 +360,9 @@ export default function TaskModal({
             />
             <DateButton
               date={formData.date}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, date: value }))
-              }
+              // onValueChange={(value) =>
+              //   setFormData((prev) => ({ ...prev, date: value }))
+              // }
             />
           </div>
 

@@ -2,7 +2,6 @@
 import db from "@/app/db";
 import { onboarding, projects, userProjects } from "@/app/db/schema";
 import { eq, inArray, and } from "drizzle-orm";
-import { v4 as uuidv4 } from "uuid";
 
 export async function getActiveProjects() {
   const activeProjects = await db.query.projects.findMany({

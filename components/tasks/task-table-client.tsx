@@ -18,11 +18,10 @@ import {
 } from "@/components/ui/table";
 import { useState } from "react";
 import { TaskTableTask } from "@/app/types/task";
-import { Checkbox } from "@/components/ui/checkbox";
-import { StackedInitials } from "@/components/stacked-avatars";
 import { StatusButton } from "@/components/tasks/status-button";
-import { daysOutDisplayer } from "@/lib/date-and-time";
+import { DaysOutDisplayer } from "@/lib/date-and-time";
 import { ColumnDef } from "@tanstack/react-table";
+import { StackedInitials } from "../stacked-avatars";
 const columns: ColumnDef<TaskTableTask>[] = [
   // {
   //   id: "select",
@@ -73,7 +72,7 @@ const columns: ColumnDef<TaskTableTask>[] = [
       const date = row.getValue("date") as string;
       return date ? (
         <div className="text-xs text-[var(--text-secondary)]">
-          {daysOutDisplayer({ dateString: date })}
+          <DaysOutDisplayer dateString={date} />
         </div>
       ) : null;
     },

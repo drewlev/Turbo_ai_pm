@@ -24,7 +24,6 @@ export const AddLoom: React.FC<AddLoomProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [loomUrl, setLoomUrl] = useState(initialLoomUrl || "");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [currentLoomUrl, setCurrentLoomUrl] = useState(initialLoomUrl);
 
   const handleAddLoom = async (taskId: number) => {
@@ -48,19 +47,19 @@ export const AddLoom: React.FC<AddLoomProps> = ({
   };
 
   const handleDeleteLoom = async () => {
-    setIsDeleting(true);
+    // setIsDeleting(true);
     try {
       const result = await deleteLoomFromTask(taskId);
       if (result.success) {
         setCurrentLoomUrl(undefined);
         onLoomDeleted?.();
         setTimeout(() => {
-          setIsDeleting(false);
+          // setIsDeleting(false);
         }, 500);
       }
     } catch (error) {
       console.error("Failed to delete Loom:", error);
-      setIsDeleting(false);
+      // setIsDeleting(false);
     }
   };
 

@@ -1,6 +1,6 @@
 "use server";
 import { v4 as uuidv4 } from "uuid";
-import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
+import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import db from "@/app/db";
 import { googleCalendar } from "@/app/db/schema";
 import { clerkIdToSerialId } from "@/app/actions/users";

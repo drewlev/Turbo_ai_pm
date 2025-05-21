@@ -1,11 +1,7 @@
 "use client";
-import {
-  watchCalendar,
-  stopWatchingCalendar,
-} from "@/app/actions/google-calendar";
+
 import {
   saveFirefliesApiKey,
-  getFirefliesApiKey,
   hasFirefliesApiKey,
 } from "@/app/actions/fireflies";
 import { useAuth, useUser } from "@clerk/nextjs";
@@ -20,12 +16,12 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [watchDetails, setWatchDetails] = useState<{
-    channelId: string;
-    resourceId: string;
-  } | null>(null);
-  const [manualChannelId, setManualChannelId] = useState("");
-  const [manualResourceId, setManualResourceId] = useState("");
+  // const [watchDetails, setWatchDetails] = useState<{
+  //   channelId: string;
+  //   resourceId: string;
+  // } | null>(null);
+  // const [manualChannelId, setManualChannelId] = useState("");
+  // const [manualResourceId, setManualResourceId] = useState("");
   const [firefliesApiKey, setFirefliesApiKey] = useState("");
   const [hasApiKey, setHasApiKey] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -33,12 +29,12 @@ export default function SettingsPage() {
   useEffect(() => {
     // Check if user is watching calendar
     if (user?.publicMetadata?.calendarChannelId) {
-      setWatchDetails({
-        channelId: user.publicMetadata.calendarChannelId as string,
-        resourceId: user.publicMetadata.calendarResourceId as string,
-      });
-      setManualChannelId(user.publicMetadata.calendarChannelId as string);
-      setManualResourceId(user.publicMetadata.calendarResourceId as string);
+      // setWatchDetails({
+      //   channelId: user.publicMetadata.calendarChannelId as string,
+      //   resourceId: user.publicMetadata.calendarResourceId as string,
+      // });
+      // setManualChannelId(user.publicMetadata.calendarChannelId as string);
+      // setManualResourceId(user.publicMetadata.calendarResourceId as string);
     }
 
     // Check if user has a Fireflies API key
@@ -54,86 +50,86 @@ export default function SettingsPage() {
     checkApiKey();
   }, [user]);
 
-  const handleWatchCalendar = async () => {
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+  // const handleWatchCalendar = async () => {
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setSuccess(null);
 
-    try {
-      const response = await watchCalendar();
-      setSuccess("Successfully set up calendar notifications!");
-      console.log("Calendar watch response:", response);
-      setWatchDetails({
-        channelId: response.channelId,
-        resourceId: response.resourceId,
-      });
-      setManualChannelId(response.channelId);
-      setManualResourceId(response.resourceId);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to set up calendar notifications"
-      );
-      console.error("Calendar watch error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     const response = await watchCalendar();
+  //     setSuccess("Successfully set up calendar notifications!");
+  //     console.log("Calendar watch response:", response);
+  //     setWatchDetails({
+  //       channelId: response.channelId,
+  //       resourceId: response.resourceId,
+  //     });
+  //     setManualChannelId(response.channelId);
+  //     setManualResourceId(response.resourceId);
+  //   } catch (err) {
+  //     setError(
+  //       err instanceof Error
+  //         ? err.message
+  //         : "Failed to set up calendar notifications"
+  //     );
+  //     console.error("Calendar watch error:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleStopWatching = async () => {
-    if (!watchDetails) return;
+  // const handleStopWatching = async () => {
+  //   if (!watchDetails) return;
 
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setSuccess(null);
 
-    try {
-      await stopWatchingCalendar(
-        watchDetails.channelId,
-        watchDetails.resourceId
-      );
-      setSuccess("Successfully stopped calendar notifications!");
-      setWatchDetails(null);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to stop calendar notifications"
-      );
-      console.error("Stop calendar watch error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     await stopWatchingCalendar(
+  //       watchDetails.channelId,
+  //       watchDetails.resourceId
+  //     );
+  //     setSuccess("Successfully stopped calendar notifications!");
+  //     setWatchDetails(null);
+  //   } catch (err) {
+  //     setError(
+  //       err instanceof Error
+  //         ? err.message
+  //         : "Failed to stop calendar notifications"
+  //     );
+  //     console.error("Stop calendar watch error:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleManualStop = async () => {
-    if (!manualChannelId || !manualResourceId) {
-      setError("Please enter both Channel ID and Resource ID");
-      return;
-    }
+  // const handleManualStop = async () => {
+  //   if (!manualChannelId || !manualResourceId) {
+  //     setError("Please enter both Channel ID and Resource ID");
+  //     return;
+  //   }
 
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setSuccess(null);
 
-    try {
-      await stopWatchingCalendar(manualChannelId, manualResourceId);
-      setSuccess("Successfully stopped calendar notifications!");
-      setWatchDetails(null);
-      setManualChannelId("");
-      setManualResourceId("");
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to stop calendar notifications"
-      );
-      console.error("Stop calendar watch error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     await stopWatchingCalendar(manualChannelId, manualResourceId);
+  //     setSuccess("Successfully stopped calendar notifications!");
+  //     setWatchDetails(null);
+  //     setManualChannelId("");
+  //     setManualResourceId("");
+  //   } catch (err) {
+  //     setError(
+  //       err instanceof Error
+  //         ? err.message
+  //         : "Failed to stop calendar notifications"
+  //     );
+  //     console.error("Stop calendar watch error:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleSaveFirefliesApiKey = async () => {
     // Don't save if we're not editing and showing bullet points

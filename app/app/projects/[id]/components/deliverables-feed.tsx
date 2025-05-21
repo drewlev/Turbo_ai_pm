@@ -1,6 +1,6 @@
 import type React from "react";
 import { Card } from "@/components/ui/card";
-
+import Image from "next/image";
 interface Deliverable {
   id: string;
   title: string;
@@ -21,7 +21,9 @@ function LoomEmbed({ url }: { url: string }) {
   const iframeCode = `<iframe src="${embedUrl}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>`;
 
   return (
-    <div style={{ position: "relative", width: "100%", paddingBottom: "56.25%" }}>
+    <div
+      style={{ position: "relative", width: "100%", paddingBottom: "56.25%" }}
+    >
       <div dangerouslySetInnerHTML={{ __html: iframeCode }} />
     </div>
   );
@@ -46,7 +48,7 @@ export function DeliverablesFeed() {
               </div>
             ) : (
               <div className="aspect-video bg-[var(--border-dark)] relative flex items-center justify-center">
-                <img
+                <Image
                   src={deliverable.thumbnail || "/placeholder.svg"}
                   alt={deliverable.title}
                   className="w-full h-full object-cover"
@@ -104,7 +106,8 @@ const deliverables: Deliverable[] = [
     date: "May 8, 2025",
     description:
       "Detailed explanation of the homepage design concepts and navigation structure.",
-    loomUrl: "https://www.loom.com/share/903200708d25460899f05daff777fca4?sid=0698dfae-36ae-4b6a-beb2-694326f933c1",
+    loomUrl:
+      "https://www.loom.com/share/903200708d25460899f05daff777fca4?sid=0698dfae-36ae-4b6a-beb2-694326f933c1",
   },
   {
     id: "2",

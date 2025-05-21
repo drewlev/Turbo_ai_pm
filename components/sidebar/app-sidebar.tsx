@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NewTask from "@/components/tasks/new-task";
 import { getAvailableAssignees } from "@/app/actions/tasks";
-import { Clipboard, Map, UserPlus, HelpCircle } from "lucide-react";
+import { UserPlus, HelpCircle } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,7 +17,6 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
-import { Button } from "@/components/ui/button"; // Import Button
 import { NavMain } from "@/components/nav-main";
 import { getActiveProjects } from "@/app/actions/projects";
 import { getUsers } from "@/app/actions/users";

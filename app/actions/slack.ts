@@ -1,9 +1,8 @@
 "use server";
 
 import db from "@/app/db";
-import { users, slackUsers, teams } from "@/app/db/schema";
+import { slackUsers } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
-import { clerkClient } from "@clerk/nextjs/server";
 import { clerkIdToSerialId } from "./users";
 
 interface SlackOAuthResponse {

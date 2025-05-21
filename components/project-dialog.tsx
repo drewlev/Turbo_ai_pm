@@ -88,6 +88,7 @@ export default function ProjectModal({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
+      console.error("Failed to copy link", err);
       toast.error("Failed to copy link");
     }
   };
@@ -128,7 +129,7 @@ export default function ProjectModal({
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errorMessages = error.errors.map((err) => err.message).join("\n");
+        // const errorMessages = error.errors.map((err) => err.message).join("\n");
         toast.error("Failed to save client changes");
       } else {
         toast.error("Failed to save client changes");

@@ -1,12 +1,12 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { assignSlackUser } from "@/app/actions/slack";
 
 type Status = "loading" | "success" | "error";
 
-export default function SlackCallback() {
+function SlackCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<Status>("loading");
@@ -100,5 +100,24 @@ export default function SlackCallback() {
         {renderContent()}
       </div>
     </div>
+  );
+}
+
+export default function SlackCallback() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md w-full">
+            <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+            <div className="mt-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <SlackCallbackContent />
+    </Suspense>
   );
 }

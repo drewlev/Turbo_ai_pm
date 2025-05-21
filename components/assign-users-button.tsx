@@ -35,12 +35,12 @@ export const AssigneeButton = ({
       multiSelect={true}
       onValueChange={(value) => {
         const selectedIds = value as string[];
-        const selectedAssignees = selectedIds
-          .map((id) => {
-            const option = assigneeOptions.find((opt) => opt.value === id);
-            return option ? { url: id, id: parseInt(id) } : null;
-          })
-          .filter((a): a is Assignee => a !== null);
+        // const selectedAssignees = selectedIds
+        //   .map((id) => {
+        //     const option = assigneeOptions.find((opt) => opt.value === id);
+        //     return option ? { url: id, id: parseInt(id) } : null;
+        //   })
+        //   .filter((a): a is Assignee => a !== null);
         onValueChange(selectedIds);
       }}
       trigger={

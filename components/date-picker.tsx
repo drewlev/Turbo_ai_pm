@@ -15,10 +15,8 @@ import {
 
 export function DatePicker({
   date: existingDate,
-  onValueChange,
 }: {
   date: Date;
-  onValueChange: (date: Date) => void;
 }) {
   const [date, setDate] = React.useState<Date>(existingDate);
 

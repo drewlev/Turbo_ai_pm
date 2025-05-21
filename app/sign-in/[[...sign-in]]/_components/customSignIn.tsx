@@ -1,16 +1,13 @@
 "use client";
 
-import { useSignIn, useAuth, useClerk } from "@clerk/nextjs";
+import { useSignIn, useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import BackgroundPaths from "@/components/backgroundPaths";
-// import { FcGoogle } from "react-icons/fc";
 
 export function LoginForm({
   setIsSignUp,
@@ -19,12 +16,7 @@ export function LoginForm({
 }: React.ComponentProps<"div"> & { setIsSignUp: (isSignUp: boolean) => void }) {
   const { signIn } = useSignIn();
   const { isSignedIn, isLoaded } = useAuth();
-  const { setActive } = useClerk();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [showCodeInput, setShowCodeInput] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -33,82 +25,82 @@ export function LoginForm({
     }
   }, [isLoaded, isSignedIn, router]);
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+  // const handleEmailSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError("");
 
-    try {
-      if (signIn) {
-        await signIn.create({
-          identifier: email,
-          strategy: "email_code",
-        });
+  //   try {
+  //     if (signIn) {
+  //       await signIn.create({
+  //         identifier: email,
+  //         strategy: "email_code",
+  //       });
 
-        if (!signIn.supportedFirstFactors) {
-          throw new Error("No supported first factors found");
-        }
+  //       if (!signIn.supportedFirstFactors) {
+  //         throw new Error("No supported first factors found");
+  //       }
 
-        const emailFactor = signIn.supportedFirstFactors.find(
-          (factor) => factor.strategy === "email_code"
-        );
+  //       const emailFactor = signIn.supportedFirstFactors.find(
+  //         (factor) => factor.strategy === "email_code"
+  //       );
 
-        if (!emailFactor?.emailAddressId) {
-          throw new Error("Email verification is not available");
-        }
+  //       if (!emailFactor?.emailAddressId) {
+  //         throw new Error("Email verification is not available");
+  //       }
 
-        await signIn.prepareFirstFactor({
-          strategy: "email_code",
-          emailAddressId: emailFactor.emailAddressId,
-        });
+  //       await signIn.prepareFirstFactor({
+  //         strategy: "email_code",
+  //         emailAddressId: emailFactor.emailAddressId,
+  //       });
 
-        setShowCodeInput(true);
-      }
-    } catch (err: any) {
-      console.error("Sign in failed", err);
+  //       setShowCodeInput(true);
+  //     }
+  //   } catch (err: any) {
+  //     console.error("Sign in failed", err);
 
-      // Check for user not found error
-      if (
-        err.errors?.some(
-          (e: any) =>
-            e.code === "form_identifier_not_found" ||
-            e.message?.includes("identifier not found")
-        )
-      ) {
-        // User doesn't exist, redirect to sign up
-        router.push(`/sign-up?email=${encodeURIComponent(email)}`);
-      } else {
-        setError("Failed to sign in. Please try again.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     // Check for user not found error
+  //     if (
+  //       err.errors?.some(
+  //         (e: any) =>
+  //           e.code === "form_identifier_not_found" ||
+  //           e.message?.includes("identifier not found")
+  //       )
+  //     ) {
+  //       // User doesn't exist, redirect to sign up
+  //       router.push(`/sign-up?email=${encodeURIComponent(email)}`);
+  //     } else {
+  //       setError("Failed to sign in. Please try again.");
+  //     }
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+  // const handleCodeSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError("");
 
-    try {
-      if (signIn) {
-        const result = await signIn.attemptFirstFactor({
-          strategy: "email_code",
-          code,
-        });
+  //   try {
+  //     if (signIn) {
+  //       const result = await signIn.attemptFirstFactor({
+  //         strategy: "email_code",
+  //         code,
+  //       });
 
-        if (result.status === "complete") {
-          await setActive({ session: result.createdSessionId });
-          router.push("/app");
-        }
-      }
-    } catch (err) {
-      console.error("Code verification failed", err);
-      setError("Invalid verification code. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //       if (result.status === "complete") {
+  //         await setActive({ session: result.createdSessionId });
+  //         router.push("/app");
+  //       }
+  //     }
+  //   } catch (err) {
+  //     console.error("Code verification failed", err);
+  //     setError("Invalid verification code. Please try again.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleGoogleSignIn = async () => {
     try {
@@ -142,9 +134,7 @@ export function LoginForm({
                 <div className="flex flex-col items-center text-center">
                   <h1 className="text-2xl font-bold">Welcome Back</h1>
                   <p className="text-balance text-muted-foreground">
-                    {showCodeInput
-                      ? "Enter your verification code"
-                      : "Sign in to your account"}
+                    Sign in to your account
                   </p>
                 </div>
 

@@ -34,14 +34,14 @@ export async function POST(request: Request) {
     }
 
     // Update the onboarding record
-    await db
-      .update(onboarding)
-      .set({
-        status: "completed",
-        companyName,
-        completedAt: new Date(),
-      })
-      .where(eq(onboarding.slug, slug));
+    // await db
+    //   .update(onboarding)
+    //   .set({
+    //     status: "completed",
+    //     companyName,
+    //     completedAt: new Date(),
+    //   })
+    //   .where(eq(onboarding.slug, slug));
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
