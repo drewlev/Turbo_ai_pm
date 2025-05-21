@@ -1,27 +1,53 @@
 // lib/fireflies.ts
 "use server";
+import { getFirefliesApiKey } from "@/app/actions/fireflies";
 import db from "@/app/db/index";
 import { meetings, participants, sentences, speakers } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 
-type TranscriptType = {
+// Types
+export interface FirefliesTranscript {
   id: string;
   title: string;
   dateString: string;
-  meeting_link: string | null;
+  duration: number;
   transcript_url: string;
-};
+  audio_url: string | null;
+  video_url: string | null;
+  sentences: FirefliesSentence[];
+  speakers: FirefliesSpeaker[];
+  participants: string[];
+  meeting_link: string | null;
+  analytics: FirefliesAnalytics | null;
+}
 
-type TranscriptsData = {
-  transcripts: TranscriptType[];
-};
+export interface FirefliesSentence {
+  index: number;
+  text: string;
+  start_time: number;
+  end_time: number;
+  speaker_name: string;
+}
 
-type FirefliesMeetingListResponse = {
-  error: any;
-  data: TranscriptsData;
-};
+export interface FirefliesSpeaker {
+  id: number;
+  name: string;
+}
 
-type ErrorDetail = {
+export interface FirefliesAnalytics {
+  sentiments?: {
+    positive_pct: number;
+    negative_pct: number;
+    neutral_pct: number;
+  };
+  categories?: {
+    questions: string[];
+    tasks: string[];
+    metrics: string[];
+  };
+}
+
+export interface FirefliesError {
   friendly: boolean;
   message: string;
   locations: {
@@ -36,105 +62,84 @@ type ErrorDetail = {
     metadata: Record<string, string>;
     correlationId: string;
   };
-};
+}
 
-type Sentence = {
-  index: number;
-  text: string;
-  start_time: number;
-  end_time: number;
-  speaker_name: string;
-};
-
-type Speaker = {
-  id: number;
-  name: string;
-};
-
-type TranscriptData = {
-  id: string;
-  title: string;
-  dateString: string;
-  duration: number;
-  transcript_url: string;
-  audio_url: string | null;
-  video_url: string | null;
-  sentences: Sentence[];
-  speakers: Speaker[];
-  participants: string[];
-  meeting_link: string | null;
-  analytics: any | null; // Assuming analytics can be any JSON object or null
-};
-
-type TranscriptResponse = {
-  errors?: ErrorDetail[];
+export interface FirefliesResponse {
+  errors?: FirefliesError[];
   data?: {
-    transcript?: TranscriptData | null;
+    transcript?: FirefliesTranscript | null;
   };
-};
+}
 
-// TODO: Move to .env
-const apiKey = "cbf9223d-454c-4e6f-8fa7-37a053dcf65c";
+// Constants
+const FIREFLIES_API_URL = "https://api.fireflies.ai/graphql";
 
-
-async function fetchFirefliesTranscript(
-  transcriptId: string
-): Promise<TranscriptResponse> {
-  // ... (Your existing fetchFirefliesTranscript function - it looks good!)
-  const apiUrl = "https://api.fireflies.ai/graphql";
-  const query = `
-      query GetTranscript($transcriptId: String!) {
-        transcript(id: $transcriptId) {
-          id
-          title
-          dateString
-          duration
-          transcript_url
-          audio_url
-          video_url
-          sentences {
-            index
-            text
-            start_time
-            end_time
-            speaker_name
-          }
-          speakers {
-            id
-            name
-          }
-          participants
-          meeting_link
-          analytics {
-            sentiments {
-              positive_pct
-              negative_pct
-              neutral_pct
-            }
-            categories {
-              questions
-              tasks
-              metrics
-            }
-          }
+// GraphQL Query
+const GET_TRANSCRIPT_QUERY = `
+  query GetTranscript($transcriptId: String!) {
+    transcript(id: $transcriptId) {
+      id
+      title
+      dateString
+      duration
+      transcript_url
+      audio_url
+      video_url
+      sentences {
+        index
+        text
+        start_time
+        end_time
+        speaker_name
+      }
+      speakers {
+        id
+        name
+      }
+      participants
+      meeting_link
+      analytics {
+        sentiments {
+          positive_pct
+          negative_pct
+          neutral_pct
+        }
+        categories {
+          questions
+          tasks
+          metrics
         }
       }
-    `;
-  const variables = { transcriptId };
+    }
+  }
+`;
+
+// API Functions
+export async function fetchFirefliesTranscript(
+  transcriptId: string,
+  userId: number
+): Promise<FirefliesResponse> {
+  const firefliesApiKey = await getFirefliesApiKey(userId);
+
   try {
-    const response = await fetch(apiUrl, {
+    const response = await fetch(FIREFLIES_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${firefliesApiKey}`,
       },
-      body: JSON.stringify({ query, variables }),
+      body: JSON.stringify({
+        query: GET_TRANSCRIPT_QUERY,
+        variables: { transcriptId },
+      }),
     });
+
     if (!response.ok) {
       const errorData = await response.json();
       console.error("Fireflies API Error:", errorData);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+
     return await response.json();
   } catch (error) {
     console.error("Error fetching transcript:", error);
@@ -142,189 +147,198 @@ async function fetchFirefliesTranscript(
   }
 }
 
-
-//how do i add a projectId to the meeting?
+// Database Functions
 export async function createMeeting(meetingData: typeof meetings.$inferInsert) {
-  const [createdMeeting] = await db
-    .insert(meetings)
-    .values(meetingData)
-    .returning();
-  return createdMeeting;
+  try {
+    const [createdMeeting] = await db
+      .insert(meetings)
+      .values(meetingData)
+      .returning();
+    return createdMeeting;
+  } catch (error) {
+    console.error("Error creating meeting:", error);
+    throw error;
+  }
 }
 
 export async function createOrUpdateSpeakers(
   meetingId: number,
-  firefliesSpeakers: { id: number; name: string }[]
+  firefliesSpeakers: FirefliesSpeaker[]
 ) {
-  // Map Fireflies speakers to your database schema, including the meetingId
-  const newSpeakers = firefliesSpeakers.map((speaker) => ({
-    meetingId: meetingId,
-    firefliesSpeakerId: speaker.id,
-    name: speaker.name,
-  }));
+  try {
+    const newSpeakers = firefliesSpeakers.map((speaker) => ({
+      meetingId,
+      firefliesSpeakerId: speaker.id,
+      name: speaker.name,
+    }));
 
-  // Insert new speakers, and if a conflict occurs on (meetingId, firefliesSpeakerId), do nothing
-  await db
-    .insert(speakers)
-    .values(newSpeakers)
-    .onConflictDoNothing({
-      target: [speakers.meetingId, speakers.firefliesSpeakerId],
-    });
+    await db
+      .insert(speakers)
+      .values(newSpeakers)
+      .onConflictDoNothing({
+        target: [speakers.meetingId, speakers.firefliesSpeakerId],
+      });
 
-  // Fetch all speakers associated with the meeting to ensure we have their IDs
-  return db.select().from(speakers).where(eq(speakers.meetingId, meetingId));
+    return db.select().from(speakers).where(eq(speakers.meetingId, meetingId));
+  } catch (error) {
+    console.error("Error creating/updating speakers:", error);
+    throw error;
+  }
 }
 
 export async function createSentences(
   meetingId: number,
-  firefliesSentences: Sentence[]
+  firefliesSentences: FirefliesSentence[]
 ) {
-  const newSentences = firefliesSentences.map((sentence) => ({
-    meetingId: meetingId,
-    index: sentence.index,
-    text: sentence.text,
-    startTime: sentence.start_time,
-    endTime: sentence.end_time,
-    speakerName: sentence.speaker_name,
-  }));
-  await db.insert(sentences).values(newSentences);
+  try {
+    const newSentences = firefliesSentences.map((sentence) => ({
+      meetingId,
+      index: sentence.index,
+      text: sentence.text,
+      startTime: sentence.start_time.toString(),
+      endTime: sentence.end_time.toString(),
+      speakerName: sentence.speaker_name,
+    }));
+
+    await db.insert(sentences).values(newSentences);
+  } catch (error) {
+    console.error("Error creating sentences:", error);
+    throw error;
+  }
 }
 
 export async function createParticipants(
   meetingId: number,
   participantEmails: string[]
 ) {
-  const newParticipants = participantEmails.map((email) => ({
-    meetingId: meetingId,
-    email: email.trim(), // Trim whitespace to avoid issues
-  }));
+  try {
+    const newParticipants = participantEmails
+      .map((email) => email.trim())
+      .filter((email) => email)
+      .map((email) => ({
+        meetingId,
+        email,
+      }));
 
-  // Insert new participants, ignoring duplicates based on (meetingId, email)
-  await db
-    .insert(participants)
-    .values(newParticipants)
-    .onConflictDoNothing({
-      target: [participants.meetingId, participants.email],
-    });
+    await db
+      .insert(participants)
+      .values(newParticipants)
+      .onConflictDoNothing({
+        target: [participants.meetingId, participants.email],
+      });
+  } catch (error) {
+    console.error("Error creating participants:", error);
+    throw error;
+  }
 }
+
+export async function findprojectByClientEmail(clientEmail: string) {
+  try {
+    const client = await db.query.clients.findFirst({
+      where: (clients, { eq }) => eq(clients.email, clientEmail.toLowerCase()),
+      with: {
+        project: true,
+      },
+    });
+
+    return client?.project?.id;
+  } catch (error) {
+    console.error("Error finding project by client email:", error);
+    throw error;
+  }
+}
+
+// Main Import Function
 export async function importFirefliesTranscript(
   transcriptId: string,
+  userId: number,
   projectId?: number
 ) {
-  console.log(
-    `Attempting to import Fireflies transcript with ID: ${transcriptId}`
-  );
-  if (projectId !== undefined) {
-    console.log(`Associating with project ID: ${projectId}`);
-  }
+  console.log(`Importing Fireflies transcript: ${transcriptId}`);
 
   try {
-    console.log(
-      `Fetching transcript data from Fireflies API for ID: ${transcriptId}`
-    );
-    const transcriptResponse = await fetchFirefliesTranscript(transcriptId);
-    console.log(
-      `Fireflies API response received for ID: ${transcriptId}`,
-      transcriptResponse
+    const transcriptResponse = await fetchFirefliesTranscript(
+      transcriptId,
+      userId
     );
 
-    if (transcriptResponse.errors && transcriptResponse.errors.length > 0) {
-      console.error(
-        `Fireflies API returned errors for transcript ID ${transcriptId}:`,
-        transcriptResponse.errors
+    if (transcriptResponse.errors?.length) {
+      console.log(
+        `Fireflies API errors: ${JSON.stringify(transcriptResponse.errors)}`
       );
-      //   return null; // Or handle the error as needed
     }
 
     const transcriptData = transcriptResponse.data?.transcript;
-    console.log(
-      `Transcript data extracted for ID ${transcriptId}:`,
-      transcriptData
-    );
-
     if (!transcriptData) {
-      console.warn(`No transcript data found for ID: ${transcriptId}`);
-      return null;
+      throw new Error(`No transcript data found for ID: ${transcriptId}`);
     }
 
-    console.log(`Creating Meeting record for transcript ID: ${transcriptId}`);
-    // 1. Create the Meeting record
+    // Always check participant emails for project ID, even if one was provided
+    let foundProjectId = projectId;
+    if (transcriptData.participants?.length) {
+      const participantEmails = transcriptData.participants
+        .flatMap((p) => p.split(","))
+        .map((email) => email.trim().toLowerCase())
+        .filter((email) => email);
+
+      // Try to find a project ID from any of the participant emails
+      for (const email of participantEmails) {
+        const clientProjectId = await findprojectByClientEmail(email);
+        if (clientProjectId) {
+          // If we already have a projectId from the parameter, log the conflict
+          if (foundProjectId && foundProjectId !== clientProjectId) {
+            console.log(
+              `Found conflicting project IDs: provided=${foundProjectId}, client=${clientProjectId} for email ${email}. Using provided ID.`
+            );
+          } else if (!foundProjectId) {
+            // Only use the found project ID if we don't have one from the parameter
+            foundProjectId = clientProjectId;
+            console.log(
+              `Found project ID ${foundProjectId} for client email ${email}`
+            );
+          }
+          break;
+        }
+      }
+    }
+
+    // Create meeting record
     const meeting = await createMeeting({
       title: transcriptData.title,
-      dateString: new Date(transcriptData.dateString), // Ensure it's a Date object
-      duration: transcriptData.duration,
+      dateString: new Date(transcriptData.dateString),
+      duration: transcriptData.duration.toString(),
       transcriptUrl: transcriptData.transcript_url,
       audioUrl: transcriptData.audio_url,
       videoUrl: transcriptData.video_url,
       meetingLink: transcriptData.meeting_link,
-      projectId: projectId, // Optional: if you want to link it to a project immediately
+      projectId: foundProjectId,
       firefliesMeetingId: transcriptData.id,
-      // You might want to add other relevant fields here in the future
     });
 
-    if (meeting) {
-      console.log(
-        `Successfully created Meeting record with ID: ${meeting.id} for transcript ID: ${transcriptId}`
+    if (!meeting) {
+      throw new Error(
+        `Failed to create meeting for transcript: ${transcriptId}`
       );
-
-      // 2. Create or Update Speakers
-      if (transcriptData.speakers && transcriptData.speakers.length > 0) {
-        console.log(
-          `Creating or updating speakers for meeting ID: ${meeting.id}`
-        );
-        await createOrUpdateSpeakers(meeting.id, transcriptData.speakers);
-        console.log(
-          `Speakers created or updated for meeting ID: ${meeting.id}`
-        );
-      } else {
-        console.log(`No speaker data found for transcript ID: ${transcriptId}`);
-      }
-
-      // 3. Create Sentences
-      if (transcriptData.sentences && transcriptData.sentences.length > 0) {
-        console.log(`Creating sentences for meeting ID: ${meeting.id}`);
-        await createSentences(meeting.id, transcriptData.sentences);
-        console.log(`Sentences created for meeting ID: ${meeting.id}`);
-      } else {
-        console.log(
-          `No sentence data found for transcript ID: ${transcriptId}`
-        );
-      }
-
-      // 4. Create Participants (handle potential comma-separated strings)
-      if (
-        transcriptData.participants &&
-        transcriptData.participants.length > 0
-      ) {
-        console.log(`Processing participants for meeting ID: ${meeting.id}`);
-        const allParticipants = transcriptData.participants
-          .flatMap((p) => p.split(","))
-          .map((p) => p.trim())
-          .filter((p) => p);
-        console.log(`Extracted participants:`, allParticipants);
-        await createParticipants(meeting.id, allParticipants);
-        console.log(`Participants created for meeting ID: ${meeting.id}`);
-      } else {
-        console.log(
-          `No participant data found for transcript ID: ${transcriptId}`
-        );
-      }
-
-      console.log(
-        `Successfully imported transcript ${transcriptId} into meeting ID ${meeting.id}`
-      );
-      return meeting; // Return the created meeting object if needed
-    } else {
-      console.error(
-        `Failed to create meeting for transcript ID: ${transcriptId}`
-      );
-      return null;
     }
-  } catch (error) {
-    console.error(
-      `Error during Fireflies transcript import for ID ${transcriptId}:`,
-      error
+
+    // Process related data
+    await Promise.all(
+      [
+        transcriptData.speakers?.length &&
+          createOrUpdateSpeakers(meeting.id, transcriptData.speakers),
+        transcriptData.sentences?.length &&
+          createSentences(meeting.id, transcriptData.sentences),
+        transcriptData.participants?.length &&
+          createParticipants(
+            meeting.id,
+            transcriptData.participants.flatMap((p) => p.split(","))
+          ),
+      ].filter(Boolean)
     );
-    return null;
+
+    return meeting;
+  } catch (error) {
+    console.error(`Error importing transcript ${transcriptId}:`, error);
+    throw error;
   }
 }

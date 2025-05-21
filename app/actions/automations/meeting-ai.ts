@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { meetingNotesToTasks } from "@/app/actions/ai";
 import { createTaskAndAssign } from "../tasks";
 
-export async function meetingToNotes(meetingId: number) {
+export async function meetingIdToTasks(meetingId: number) {
   const meeting = await getMeetingWithDetails(meetingId);
   if (!meeting) {
     console.error("Meeting not found");
