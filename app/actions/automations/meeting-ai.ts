@@ -5,43 +5,39 @@ import { eq } from "drizzle-orm";
 import { meetingNotesToTasks } from "@/app/actions/ai";
 import { createTaskAndAssign } from "../tasks";
 
-export async function meetingIdToTasks(meetingId: number) {
+export async function processMeetingToTasks(meetingId: number) {
   const meeting = await getMeetingWithDetails(meetingId);
   if (!meeting) {
-    console.error("Meeting not found");
-    return;
+    throw new Error("Meeting not found");
   }
 
   const projectUsers =
     meeting.project?.userProjects.map((userProject) => userProject.user) || [];
 
-  if (meeting.sentences) {
-    const formattedNotes = formatMeetingNotes(meeting.sentences);
-    const tasks = await meetingNotesToTasks(formattedNotes);
-
-    // Combine all tasks into a single task
-    const combinedTaskDescription = tasks.tasks
-      .map((task: any) => task.description)
-      .join("\n\n");
-
-    // Create a single task with all the data
-    await createTaskAndAssign({
-      title: `Meeting Tasks - ${meeting.title}`,
-      description: combinedTaskDescription,
-      projectId: meeting.projectId,
-      assigneeID: projectUsers.map((user) => user.id),
-
-    });
+  if (!meeting.sentences?.length) {
+    throw new Error("No meeting sentences found");
   }
 
-  if (meeting.importTranscripts) {
-    console.log(meeting.importTranscripts);
-  }
+  const formattedNotes = formatMeetingTranscript(meeting.sentences);
+  const tasks = await meetingNotesToTasks(formattedNotes);
+
+  // Combine all tasks into a single task
+  const combinedTaskDescription = tasks.tasks
+    .map((task: any) => task.description)
+    .join("\n\n");
+
+  // Create a single task with all the data
+  await createTaskAndAssign({
+    title: `Meeting Tasks - ${meeting.title}`,
+    description: combinedTaskDescription,
+    projectId: meeting.projectId,
+    assigneeID: projectUsers.map((user) => user.id),
+  });
 
   return meeting;
 }
 
-// Helper functions to make the code more modular
+// Helper functions
 async function getMeetingWithDetails(meetingId: number) {
   return await db.query.meetings.findFirst({
     where: eq(meetings.id, meetingId),
@@ -61,7 +57,7 @@ async function getMeetingWithDetails(meetingId: number) {
   });
 }
 
-function formatMeetingNotes(sentences: any[]) {
+function formatMeetingTranscript(sentences: any[]) {
   return sentences
     .map((note) => {
       return `${note.speakerName} (${note.startTime}-${note.endTime}): ${note.text}`;

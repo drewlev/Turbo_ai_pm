@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { importFirefliesTranscript } from "@/lib/fireflies";
+import { processMeetingToTasks } from "@/app/actions/automations/meeting-ai";
 
-interface MeetingEvent {
+interface FirefliesWebhookEvent {
   meetingId: string;
   eventType: string;
 }
@@ -11,33 +12,31 @@ export async function POST(
   { params }: { params: { user: string } }
 ) {
   try {
-    const { user } = await params;
-    const userId = parseInt(user);
+    const userId = parseInt(params.user);
     if (isNaN(userId)) {
       return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
     }
 
-    const body: MeetingEvent = await request.json();
+    const body: FirefliesWebhookEvent = await request.json();
     if (!body.meetingId) {
-      return NextResponse.json(
-        { error: "Missing meetingId" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
     }
 
-    const meetingId = body.meetingId;
+    // Step 1: Import the transcript
+    const meeting = await importFirefliesTranscript(body.meetingId, userId);
 
-    const meeting = await importFirefliesTranscript(meetingId, userId);
+    // Step 2: Process the meeting into tasks
+    await processMeetingToTasks(meeting.id);
 
     return NextResponse.json({
       success: true,
       data: {
         meetingId: meeting.id,
-        message: "Transcript imported successfully",
+        message: "Meeting processed successfully",
       },
     });
   } catch (error) {
-    console.error("Error importing transcript:", error);
+    console.error("Error processing meeting:", error);
     return NextResponse.json(
       {
         success: false,

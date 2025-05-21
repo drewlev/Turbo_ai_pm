@@ -3,7 +3,6 @@ import { importFirefliesTranscript } from "@/lib/fireflies";
 import { Button } from "@/components/ui/button";
 import { createSlackOAuthUrl, sendMessageToSlack } from "@/app/actions/slack";
 import { redirect } from "next/navigation";
-import { meetingToNotes } from "@/app/actions/automations/meeting-ai";
 
 export default function InternalPage() {
   return (
@@ -12,7 +11,7 @@ export default function InternalPage() {
       <Button
         onClick={async () => {
           const transcript = await importFirefliesTranscript(
-            "01JTZVXWRGJVN5BZCD9FG06FVR"
+            "01JTZVXWRGJVN5BZCD9FG06FVR",12
           );
           console.log(transcript);
         }}
@@ -34,13 +33,13 @@ export default function InternalPage() {
       >
         Send Message to Slack
       </Button>
-      <Button
+      {/* <Button
         onClick={async () => {
-          await meetingToNotes(2);
+          await meetingIdToTasks(2);
         }}
       >
         test{" "}
-      </Button>
+      </Button> */}
     </div>
   );
 }
