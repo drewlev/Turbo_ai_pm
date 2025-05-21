@@ -1,4 +1,4 @@
-import { Combobox } from "../../combbox";
+import { Combobox } from "../../combobox";
 import { Button } from "../../ui/button";
 
 type Option = {
@@ -27,7 +27,6 @@ export const PriorityButton = ({
 }: {
   priority: string;
   onValueChange: (value: string) => void;
-  
 }) => {
   return (
     <Combobox

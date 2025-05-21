@@ -12,14 +12,54 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
+export const teams = pgTable("teams", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+});
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   clerkId: text("clerk_id").notNull().unique(),
   name: text("name"),
   email: text("email").notNull().unique(),
   role: text("role").notNull().default("designer"),
-  slackUserId: text("slack_user_id"),
 });
+
+export const slackUsers = pgTable("slack_users", {
+  id: serial("id").primaryKey(),
+  slackUserId: text("slack_user_id").notNull().unique(),
+  slackTeamId: text("slack_team_id").notNull(),
+  slackTeamName: text("slack_team_name").notNull(),
+  slackAccessToken: text("slack_access_token").notNull(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+});
+
+export const slackInstallations = pgTable("slack_installations", {
+  slackTeamId: text("slack_team_id").primaryKey(),
+  teamName: text("team_name").notNull(),
+  botToken: text("bot_token").notNull(),
+  installerUserId: text("installer_user_id").notNull(),
+  team: integer("team_id")
+    .notNull()
+    .references(() => teams.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const userProjects = pgTable(
+  "user_projects",
+  {
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    projectId: integer("project_id")
+      .notNull()
+      .references(() => projects.id),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.projectId] })]
+);
 
 export const googleCalendar = pgTable("google_calendar", {
   id: serial("id").primaryKey(),
@@ -204,11 +244,24 @@ export const userRelations = relations(users, ({ many }) => ({
   taskAssignees: many(taskAssignees),
   googleCalendar: many(googleCalendar),
   looms: many(looms),
+  userProjects: many(userProjects),
 }));
 
 // Project Relations
 export const projectRelations = relations(projects, ({ many }) => ({
   tasks: many(tasks),
+  userProjects: many(userProjects),
+}));
+
+export const userProjectRelations = relations(userProjects, ({ one }) => ({
+  user: one(users, {
+    fields: [userProjects.userId],
+    references: [users.id],
+  }),
+  project: one(projects, {
+    fields: [userProjects.projectId],
+    references: [projects.id],
+  }),
 }));
 
 // Task Relations

@@ -1,9 +1,106 @@
+"use client";
 import type React from "react";
 import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  AssigneeButton,
+  type Assignee,
+} from "@/components/assign-users-button";
+import { useEffect, useState } from "react";
+import {
+  getProjectUsers,
+  updateProjectUsers,
+  getAvailableUsers,
+} from "@/app/actions/projects";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
+
+interface User {
+  id: number;
+  name: string | null;
+}
 
 export function ProjectHeader() {
+  const params = useParams();
+  const projectId = parseInt(params.id as string);
+
+  const [projectAssignees, setProjectAssignees] = useState<Assignee[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch project users and available users
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const users = await getProjectUsers(projectId);
+
+        // Transform users into the format needed for AssigneeButton
+        const assignees: Assignee[] = users.map((user) => ({
+          id: user.userId,
+          url: user.userId.toString(),
+        }));
+
+        setProjectAssignees(assignees);
+
+        const availableUsersData = await getAvailableUsers();
+        setAvailableUsers(
+          availableUsersData.map((user: User) => ({
+            value: user.id.toString(),
+            label: user.name || "",
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching project users:", error);
+        toast.error("Failed to load project users");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [projectId]);
+
+  const handleAssigneeChange = async (selectedIds: string[]) => {
+    try {
+      // Get the IDs that were added and removed
+      const currentIds = projectAssignees.map((a) => a.id.toString());
+      const addedIds = selectedIds.filter((id) => !currentIds.includes(id));
+      const removedIds = currentIds.filter((id) => !selectedIds.includes(id));
+
+      // Handle additions and removals
+      if (addedIds.length > 0) {
+        await updateProjectUsers(
+          addedIds.map((id) => parseInt(id)),
+          projectId,
+          "add"
+        );
+      }
+
+      if (removedIds.length > 0) {
+        await updateProjectUsers(
+          removedIds.map((id) => parseInt(id)),
+          projectId,
+          "remove"
+        );
+      }
+
+      // Update local state
+      const newAssignees = selectedIds.map((id) => ({
+        id: parseInt(id),
+        url: id,
+      }));
+      setProjectAssignees(newAssignees);
+
+      toast.success("Project members updated successfully");
+    } catch (error) {
+      console.error("Error updating project users:", error);
+      toast.error("Failed to update project members");
+    }
+  };
+
   return (
     <header className="sticky top-0 z-10 bg-[var(--background-dark)] border-b border-[var(--border-dark)] shadow-sm">
       <div className="max-w-[1200px] mx-auto px-8 h-16 flex items-center justify-between">
@@ -30,17 +127,13 @@ export function ProjectHeader() {
           </Badge>
 
           <div className="flex -space-x-2">
-            <Avatar className="h-8 w-8 border-2 border-[var(--background-dark)]">
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="PM" />
-              <AvatarFallback>PM</AvatarFallback>
-            </Avatar>
-            <Avatar className="h-8 w-8 border-2 border-[var(--background-dark)]">
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="Designer"
-              />
-              <AvatarFallback>DS</AvatarFallback>
-            </Avatar>
+            <AssigneeButton
+              assigneeValue={projectAssignees}
+              assigneeOptions={availableUsers}
+              onValueChange={handleAssigneeChange}
+              placeholder="Project Members"
+              className="h-8 text-xs bg-transparent border-[var(--border-dark)] text-[var(--text-primary)] hover:bg-[var(--background-light)] hover:text-white"
+            />
           </div>
 
           <div className="text-sm text-[var(--text-secondary)]">
