@@ -2,7 +2,7 @@
 "use client";
 
 import { CheckCircle, Circle, LoaderCircle, CircleAlert } from "lucide-react";
-import { Combobox } from "../combbox";
+import { Combobox } from "../combobox";
 import { Button } from "../ui/button";
 import { updateTask } from "@/app/actions/tasks";
 
@@ -35,12 +35,15 @@ export const StatusButton = ({
   status,
   taskId,
   onStatusUpdated,
+  onClick,
 }: {
   status: string;
   taskId: number;
   onStatusUpdated: (taskId: number, newStatus: string) => void;
+  onClick?: (e: React.MouseEvent) => void;
 }) => {
   const handleStatusChange = async (newStatus: string) => {
+    console.log("here 3 ", { newStatus });
     try {
       const updatedTask = await updateTask(taskId, {
         status: newStatus,
@@ -54,6 +57,8 @@ export const StatusButton = ({
     }
   };
 
+  console.log({ status });
+
   return (
     <Combobox
       options={statusOptions}
@@ -64,6 +69,7 @@ export const StatusButton = ({
           variant="outline"
           size="sm"
           className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
+          onClick={onClick}
         >
           {status ? (
             <>

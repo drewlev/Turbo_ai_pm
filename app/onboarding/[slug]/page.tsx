@@ -7,14 +7,15 @@ import {
 } from "@/app/actions/onboarding-form";
 import { AlreadyCompletedScreen } from "@/components/onboarding-form/already-completed";
 import { OnboardingNotFoundScreen } from "@/components/onboarding-form/missing-from";
-interface OnboardingPageProps {
-  params: {
-    slug: string;
-  };
-}
 
-export default async function OnboardingPage({ params }: OnboardingPageProps) {
-  const { slug } = params;
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function OnboardingPage({ params, searchParams }: Props) {
+  const [resolvedParams] = await Promise.all([params, searchParams]);
+  const { slug } = resolvedParams;
 
   const data = await getQuestionsBySlug(slug);
   console.log("data", data);
@@ -39,4 +40,3 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
     </main>
   );
 }
-

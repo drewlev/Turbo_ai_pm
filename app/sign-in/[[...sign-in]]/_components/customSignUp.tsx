@@ -1,14 +1,12 @@
 "use client";
 
 import { useSignUp } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import BackgroundPaths from "@/components/backgroundPaths";
 import { Button } from "@/components/ui/button";
 
 export default function CustomAuth() {
   const { signUp, isLoaded } = useSignUp();
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleOneClickAuth = async () => {

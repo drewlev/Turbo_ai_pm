@@ -7,7 +7,7 @@ interface DaysOutDisplayerProps {
   dateString?: string | Date | null;
 }
 
-export const daysOutDisplayer = ({ dateString }: DaysOutDisplayerProps) => {
+export const DaysOutDisplayer = ({ dateString }: DaysOutDisplayerProps) => {
   const [displayString, setDisplayString] = useState<string | null>(null);
 
   useEffect(() => {

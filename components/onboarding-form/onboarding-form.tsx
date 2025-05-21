@@ -26,7 +26,7 @@ export function OnboardingForm({
 }: OnboardingFormProps) {
   const [questions] = useState(initialQuestions);
   const [currentStep, setCurrentStep] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [allAnswers, setAllAnswers] = useState<Record<string, string>>({});
   const [showValidation, setShowValidation] = useState(false);
@@ -160,7 +160,7 @@ export function OnboardingForm({
                       onBack={handleBack}
                       showBack={currentStep > 0}
                       isLast={currentStep === questions.length - 1}
-                      isSubmitting={isSubmitting}
+                      isSubmitting={false}
                       showValidation={showValidation}
                       onInputChange={handleInputChange}
                     />

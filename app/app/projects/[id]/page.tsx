@@ -1,5 +1,3 @@
-"use server";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectHeader } from "@/app/app/projects/[id]/components/project-header";
 import { SnapshotSummary } from "@/app/app/projects/[id]/components/snapshot-summary";
 import { TasksSection } from "@/app/app/projects/[id]/components/task-section";
@@ -8,12 +6,15 @@ import { MeetingsSummary } from "@/app/app/projects/[id]/components/meeting-summ
 import { SlackActivity } from "@/app/app/projects/[id]/components/slack-activity";
 import { getTasksByProjectId } from "@/app/actions/tasks";
 import Frame from "@/components/vercel-tabs";
-export default async function Dashboard({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const tasks = await getTasksByProjectId(Number(params.id));
+
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function Dashboard({ params, searchParams }: Props) {
+  const [resolvedParams] = await Promise.all([params, searchParams]);
+  const tasks = await getTasksByProjectId(Number(resolvedParams.id));
   return (
     <div className="flex min-h-screen bg-[var(--background-dark)]">
       {/* Main Content */}

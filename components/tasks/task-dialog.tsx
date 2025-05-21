@@ -13,85 +13,26 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createTaskAndAssign, updateTask } from "@/app/actions/tasks";
 import { toast } from "sonner";
-import { StackedInitials } from "@/components/stacked-avatars";
 import { DatePicker } from "@/components/date-picker";
-import { X, Users } from "lucide-react";
+import { X } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Combobox, Option } from "@/components/combbox";
+import { Combobox, Option } from "@/components/combobox";
 import { AddLoom } from "@/components/tasks/components/add-loom";
 import { z } from "zod";
 import { TaskTableTask } from "@/app/types/task";
+import { AssigneeButton } from "@/components/assign-users-button";
 
 const DateButton = ({
   date,
-  onValueChange,
+  // onValueChange,
 }: {
   date: string;
-  onValueChange: (value: string) => void;
-}) => {
-  return <DatePicker date={date} onValueChange={onValueChange} />;
-};
-
-const AssigneeButton = ({
-  assigneeValue,
-  assigneeOptions,
-  onValueChange,
-}: {
-  assigneeValue: { url: string; id: number }[];
-  assigneeOptions: Option[];
-  onValueChange: (value: string[]) => void;
+  // onValueChange: (value: string) => void;
 }) => {
   return (
-    <Combobox
-      options={assigneeOptions}
-      value={assigneeValue.map((a) => a.id.toString())}
-      multiSelect={true}
-      onValueChange={(value) => {
-        const selectedIds = value as string[];
-        const selectedAssignees = selectedIds
-          .map((id) => {
-            const option = assigneeOptions.find((opt) => opt.value === id);
-            return option ? { url: id, id: parseInt(id) } : null;
-          })
-          .filter((a): a is { url: string; id: number } => a !== null);
-        onValueChange(selectedIds);
-      }}
-      trigger={
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white"
-        >
-          {assigneeValue.length > 0 ? (
-            <>
-              <StackedInitials
-                assignees={assigneeValue.map((id) => ({
-                  label:
-                    assigneeOptions.find(
-                      (opt) => opt.value === id.id.toString()
-                    )?.label || "",
-                  url: id.url,
-                  id: id.id,
-                }))}
-              />
-              <span className="ml-2">
-                {assigneeValue.length === 1
-                  ? assigneeOptions.find(
-                      (opt) => opt.value === assigneeValue[0].id.toString()
-                    )?.label
-                  : `${assigneeValue.length} assignees`}
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="mr-1">
-                <Users className="w-3 h-3" />
-              </span>{" "}
-              Assignee
-            </>
-          )}
-        </Button>
-      }
+    <DatePicker
+      date={date ? new Date(date) : new Date()}
+      // onValueChange={(d) => d && onValueChange(d.toISOString())}
     />
   );
 };
@@ -110,9 +51,9 @@ const ProjectButton = ({
       options={projectOptions}
       value={project?.id.toString() || ""}
       onValueChange={(value) => {
-        const option = projectOptions.find(
-          (opt) => opt.value === (value as string)
-        );
+        // const option = projectOptions.find(
+        //   (opt) => opt.value === (value as string)
+        // );
         onValueChange(value as string);
       }}
       trigger={
@@ -159,12 +100,12 @@ const TaskForm = ({
   onDescriptionChange: (value: string) => void;
 }) => {
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 ">
       <Input
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
         placeholder="Task title"
-        className="border-none bg-transparent text-lg font-medium placeholder:text-gray-500 focus-visible:ring-0 p-0"
+        className="border-none bg-transparent text-2xl font-bold placeholder:text-gray-500 focus-visible:ring-0 p-0"
       />
       <Textarea
         value={description}
@@ -178,14 +119,7 @@ const TaskForm = ({
 
 const TaskActions = ({
   onCreateTask,
-  title,
-  description,
-  priority,
-  project,
-  assigneeValue,
-  date,
   taskId,
-  loomUrl,
   selectedTask,
 }: {
   onCreateTask: () => void;
@@ -227,7 +161,6 @@ const taskFormSchema = z.object({
   assigneeIds: z.array(z.number()).min(1, "At least one assignee is required"),
 });
 
-type TaskFormData = z.infer<typeof taskFormSchema>;
 
 export default function TaskModal({
   open,
@@ -337,9 +270,11 @@ export default function TaskModal({
     }
   };
 
+  console.log(formData.status, { formData });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden">
+      <DialogContent className="w-[600px] p-0 gap-0 bg-[#121212] text-white border-[#2a2a2a] [&>button]:hidden !max-w-none">
         <VisuallyHidden>
           <DialogTitle>
             {selectedTask ? "Edit Task" : "Create New Task"}
@@ -372,7 +307,7 @@ export default function TaskModal({
         />
 
         <div className="p-4 border-t border-[#2a2a2a]">
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4 ">
             <PriorityButton
               priority={formData.priority}
               onValueChange={(value) =>
@@ -402,12 +337,12 @@ export default function TaskModal({
               <StatusButton
                 status={formData.status}
                 taskId={parseInt(selectedTask.id)}
-                onStatusUpdated={(newStatus) =>
+                onStatusUpdated={(taskId, newStatus) => {
                   setFormData((prev) => ({
                     ...prev,
-                    status: String(newStatus),
-                  }))
-                }
+                    status: newStatus,
+                  }));
+                }}
               />
             )}
             <ProjectButton
@@ -425,9 +360,9 @@ export default function TaskModal({
             />
             <DateButton
               date={formData.date}
-              onValueChange={(value) =>
-                setFormData((prev) => ({ ...prev, date: value }))
-              }
+              // onValueChange={(value) =>
+              //   setFormData((prev) => ({ ...prev, date: value }))
+              // }
             />
           </div>
 

@@ -1,8 +1,7 @@
 "use server";
 import db from "@/app/db";
-import { looms, tasks, users } from "@/app/db/schema";
+import { looms, tasks } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
-import { auth } from "@clerk/nextjs/server";
 import { clerkIdToSerialId } from "./users";
 import { revalidatePath } from "next/cache";
 // export async function getLoomByProjectId(projectId: number) {
@@ -23,7 +22,7 @@ export async function addLoomToTask(taskId: number, loomUrl: string) {
       throw new Error("Task not found");
     }
 
-    const [newLoom] = await db
+    await db
       .insert(looms)
       .values({
         loomUrl,
@@ -45,7 +44,7 @@ export async function addLoomToTask(taskId: number, loomUrl: string) {
 
 export async function deleteLoomFromTask(taskId: number) {
   try {
-    const userId = await clerkIdToSerialId();
+    await clerkIdToSerialId();
 
     // Delete the loom associated with the task
     await db.delete(looms).where(eq(looms.taskId, taskId));

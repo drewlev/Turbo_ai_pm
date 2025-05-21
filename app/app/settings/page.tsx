@@ -1,8 +1,9 @@
 "use client";
+
 import {
-  watchCalendar,
-  stopWatchingCalendar,
-} from "@/app/actions/google-calendar";
+  saveFirefliesApiKey,
+  hasFirefliesApiKey,
+} from "@/app/actions/fireflies";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -15,81 +16,124 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [watchDetails, setWatchDetails] = useState<{
-    channelId: string;
-    resourceId: string;
-  } | null>(null);
-  const [manualChannelId, setManualChannelId] = useState("");
-  const [manualResourceId, setManualResourceId] = useState("");
+  // const [watchDetails, setWatchDetails] = useState<{
+  //   channelId: string;
+  //   resourceId: string;
+  // } | null>(null);
+  // const [manualChannelId, setManualChannelId] = useState("");
+  // const [manualResourceId, setManualResourceId] = useState("");
+  const [firefliesApiKey, setFirefliesApiKey] = useState("");
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     // Check if user is watching calendar
     if (user?.publicMetadata?.calendarChannelId) {
-      setWatchDetails({
-        channelId: user.publicMetadata.calendarChannelId as string,
-        resourceId: user.publicMetadata.calendarResourceId as string,
-      });
-      setManualChannelId(user.publicMetadata.calendarChannelId as string);
-      setManualResourceId(user.publicMetadata.calendarResourceId as string);
+      // setWatchDetails({
+      //   channelId: user.publicMetadata.calendarChannelId as string,
+      //   resourceId: user.publicMetadata.calendarResourceId as string,
+      // });
+      // setManualChannelId(user.publicMetadata.calendarChannelId as string);
+      // setManualResourceId(user.publicMetadata.calendarResourceId as string);
     }
+
+    // Check if user has a Fireflies API key
+    const checkApiKey = async () => {
+      if (user?.id) {
+        const hasKey = await hasFirefliesApiKey();
+        setHasApiKey(hasKey);
+        if (hasKey) {
+          setFirefliesApiKey("••••••••••••••••");
+        }
+      }
+    };
+    checkApiKey();
   }, [user]);
 
-  const handleWatchCalendar = async () => {
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+  // const handleWatchCalendar = async () => {
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setSuccess(null);
 
-    try {
-      const response = await watchCalendar();
-      setSuccess("Successfully set up calendar notifications!");
-      console.log("Calendar watch response:", response);
-      setWatchDetails({
-        channelId: response.channelId,
-        resourceId: response.resourceId,
-      });
-      setManualChannelId(response.channelId);
-      setManualResourceId(response.resourceId);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to set up calendar notifications"
-      );
-      console.error("Calendar watch error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     const response = await watchCalendar();
+  //     setSuccess("Successfully set up calendar notifications!");
+  //     console.log("Calendar watch response:", response);
+  //     setWatchDetails({
+  //       channelId: response.channelId,
+  //       resourceId: response.resourceId,
+  //     });
+  //     setManualChannelId(response.channelId);
+  //     setManualResourceId(response.resourceId);
+  //   } catch (err) {
+  //     setError(
+  //       err instanceof Error
+  //         ? err.message
+  //         : "Failed to set up calendar notifications"
+  //     );
+  //     console.error("Calendar watch error:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleStopWatching = async () => {
-    if (!watchDetails) return;
+  // const handleStopWatching = async () => {
+  //   if (!watchDetails) return;
 
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setSuccess(null);
 
-    try {
-      await stopWatchingCalendar(
-        watchDetails.channelId,
-        watchDetails.resourceId
-      );
-      setSuccess("Successfully stopped calendar notifications!");
-      setWatchDetails(null);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to stop calendar notifications"
-      );
-      console.error("Stop calendar watch error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     await stopWatchingCalendar(
+  //       watchDetails.channelId,
+  //       watchDetails.resourceId
+  //     );
+  //     setSuccess("Successfully stopped calendar notifications!");
+  //     setWatchDetails(null);
+  //   } catch (err) {
+  //     setError(
+  //       err instanceof Error
+  //         ? err.message
+  //         : "Failed to stop calendar notifications"
+  //     );
+  //     console.error("Stop calendar watch error:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleManualStop = async () => {
-    if (!manualChannelId || !manualResourceId) {
-      setError("Please enter both Channel ID and Resource ID");
+  // const handleManualStop = async () => {
+  //   if (!manualChannelId || !manualResourceId) {
+  //     setError("Please enter both Channel ID and Resource ID");
+  //     return;
+  //   }
+
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setSuccess(null);
+
+  //   try {
+  //     await stopWatchingCalendar(manualChannelId, manualResourceId);
+  //     setSuccess("Successfully stopped calendar notifications!");
+  //     setWatchDetails(null);
+  //     setManualChannelId("");
+  //     setManualResourceId("");
+  //   } catch (err) {
+  //     setError(
+  //       err instanceof Error
+  //         ? err.message
+  //         : "Failed to stop calendar notifications"
+  //     );
+  //     console.error("Stop calendar watch error:", err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  const handleSaveFirefliesApiKey = async () => {
+    // Don't save if we're not editing and showing bullet points
+    if (!isEditing && firefliesApiKey === "••••••••••••••••") {
       return;
     }
 
@@ -98,18 +142,16 @@ export default function SettingsPage() {
     setSuccess(null);
 
     try {
-      await stopWatchingCalendar(manualChannelId, manualResourceId);
-      setSuccess("Successfully stopped calendar notifications!");
-      setWatchDetails(null);
-      setManualChannelId("");
-      setManualResourceId("");
+      await saveFirefliesApiKey(firefliesApiKey);
+      setSuccess("Successfully saved Fireflies API key!");
+      setHasApiKey(true);
+      setFirefliesApiKey("••••••••••••••••");
+      setIsEditing(false);
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to stop calendar notifications"
+        err instanceof Error ? err.message : "Failed to save Fireflies API key"
       );
-      console.error("Stop calendar watch error:", err);
+      console.error("Save Fireflies API key error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -130,6 +172,49 @@ export default function SettingsPage() {
 
       <div className="space-y-4">
         <div className="border rounded-lg p-4">
+          <h2 className="text-xl font-semibold mb-2">Fireflies Integration</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Set up your Fireflies API key for meeting transcriptions
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="firefliesApiKey">Fireflies API Key</Label>
+              <Input
+                id="firefliesApiKey"
+                type="password"
+                value={firefliesApiKey}
+                onFocus={() => {
+                  if (hasApiKey && !isEditing) {
+                    setFirefliesApiKey("");
+                    setIsEditing(true);
+                  }
+                }}
+                onChange={(e) => {
+                  setFirefliesApiKey(e.target.value);
+                  setIsEditing(true);
+                }}
+                onBlur={() => {
+                  if (firefliesApiKey === "" && hasApiKey) {
+                    setFirefliesApiKey("••••••••••••••••");
+                    setIsEditing(false);
+                  }
+                }}
+                placeholder="Enter your Fireflies API key"
+                className="mt-1"
+              />
+            </div>
+            <Button
+              onClick={handleSaveFirefliesApiKey}
+              disabled={isLoading}
+              variant="default"
+            >
+              {isLoading ? "Saving..." : "Save API Key"}
+            </Button>
+          </div>
+        </div>
+
+        {/* <div className="border rounded-lg p-4">
           <h2 className="text-xl font-semibold mb-2">
             Google Calendar Integration
           </h2>
@@ -191,10 +276,10 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+        </div> */}
 
-          {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
-          {success && <p className="mt-2 text-sm text-green-500">{success}</p>}
-        </div>
+        {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+        {success && <p className="mt-2 text-sm text-green-500">{success}</p>}
       </div>
     </div>
   );

@@ -19,7 +19,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { Command, SquareTerminal, Users } from "lucide-react";
 
 export function NavMain({
   items,

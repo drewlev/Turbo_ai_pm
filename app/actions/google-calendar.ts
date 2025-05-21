@@ -1,7 +1,9 @@
 "use server";
 import { v4 as uuidv4 } from "uuid";
-import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
-
+import { currentUser, clerkClient } from "@clerk/nextjs/server";
+import db from "@/app/db";
+import { googleCalendar } from "@/app/db/schema";
+import { clerkIdToSerialId } from "@/app/actions/users";
 interface WatchCalendarResponse {
   kind: string;
   id: string;
@@ -19,14 +21,36 @@ interface WatchCalendarError {
   };
 }
 
+export async function getUserOauthAccessToken(channel_id: string, clerkId: string) {
+  const client = await clerkClient();
+  const tokens = await client.users.getUserOauthAccessToken(
+    clerkId,
+    "google"
+  );
+
+  if (!tokens.data || tokens.data.length === 0) {
+    console.error("[watchCalendar] No Google OAuth tokens found");
+    throw new Error("No Google OAuth tokens found for user");
+  }
+
+  console.log(`[watchCalendar] Found ${tokens.data.length} OAuth tokens`);
+  return tokens
+}
+
 export async function watchCalendar(): Promise<WatchCalendarResponse> {
   console.log("[watchCalendar] Starting calendar watch setup");
 
   // Get the current authenticated user from Clerk
-  const user = await currentUser();
-  console.log(`[watchCalendar] Found user: ${user?.id}`);
+  const clerkUser = await currentUser();
+  if (!clerkUser) {
+    console.error("[watchCalendar] No authenticated user found");
+    throw new Error("No authenticated user found");
+  }
+  console.log(`[watchCalendar] Found user: ${clerkUser?.id}`);
 
-  if (!user) {
+  const user = await clerkIdToSerialId(clerkUser.id);
+
+  if (!clerkUser) {
     console.error("[watchCalendar] No authenticated user found");
     throw new Error("No authenticated user found");
   }
@@ -36,8 +60,8 @@ export async function watchCalendar(): Promise<WatchCalendarResponse> {
   console.log("[watchCalendar] Fetching OAuth tokens");
 
   const tokens = await client.users.getUserOauthAccessToken(
-    user.id,
-    "oauth_google"
+    clerkUser.id,
+    "google"
   );
 
   if (!tokens.data || tokens.data.length === 0) {
@@ -110,11 +134,16 @@ export async function watchCalendar(): Promise<WatchCalendarResponse> {
   console.log(
     "[watchCalendar] Updating user metadata with channel ID and sync token"
   );
-  await client.users.updateUser(user.id, {
-    publicMetadata: {
-      calendarChannelId: channelId,
-      calendarSyncToken: initialSyncToken,
-    },
+
+  const expiration = new Date(Number(watchResponse.expiration));
+  await db.insert(googleCalendar).values({
+    channelId,
+    syncToken: initialSyncToken,
+    userId: user,
+    resourceId: watchResponse.resourceId,
+    resourceUri: watchResponse.resourceUri,
+    expiration: expiration,
+    // accessToken,
   });
   console.log("[watchCalendar] Successfully updated user metadata");
 
@@ -147,12 +176,13 @@ export async function stopWatchingCalendar(
 
   // Get the OAuth access token using Clerk client
   const client = await clerkClient();
-  console.log("[stopWatchingCalendar] Fetching OAuth tokens");
-
-  const tokens = await client.users.getUserOauthAccessToken(
-    user.id,
-    "oauth_google"
+  console.log(
+    "[stopWatchingCalendar] Fetching OAuth tokens for user: ",
+    user.id
   );
+
+  const tokens = await client.users.getUserOauthAccessToken(user.id, "google");
+  console.log("[stopWatchingCalendar] Tokens: ", tokens);
 
   if (!tokens.data || tokens.data.length === 0) {
     console.error("[stopWatchingCalendar] No Google OAuth tokens found");

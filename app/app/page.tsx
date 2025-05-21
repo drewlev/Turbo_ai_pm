@@ -1,8 +1,6 @@
 "use server";
 
-import { LayoutGrid, List, ChevronDown } from "lucide-react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import { LayoutGrid, List } from "lucide-react";
 import { TaskTableClient } from "@/components/tasks/task-table-client";
 import { KanbanBoard } from "@/components/kanban-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

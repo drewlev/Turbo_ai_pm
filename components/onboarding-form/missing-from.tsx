@@ -1,6 +1,6 @@
-"use client"
-import { motion } from "framer-motion"
-import { HelpCircle } from "lucide-react"
+"use client";
+import { motion } from "framer-motion";
+import { HelpCircle } from "lucide-react";
 
 export function OnboardingNotFoundScreen() {
   return (
@@ -34,11 +34,13 @@ export function OnboardingNotFoundScreen() {
         transition={{ delay: 0.4 }}
         className="max-w-md text-gray-400"
       >
-        The onboarding you're looking for doesn’t exist. If you have any questions or need help, feel free to reach out to{" "}
+        The onboarding you&apos;re looking for doesn&apos;t exist. If you have
+        any questions or need help, feel free to reach out to{" "}
         <a href="mailto:shane@turbodesign.co" className="text-white underline">
           shane@turbodesign.co
-        </a>.
+        </a>
+        .
       </motion.p>
     </div>
-  )
+  );
 }

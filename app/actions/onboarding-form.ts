@@ -1,15 +1,7 @@
 "use server";
 
-import type {
-  OnboardingQuestion,
-  SubmitAnswersPayload,
-} from "@/components/onboarding-form/types";
 import db from "@/app/db";
-import {
-  onboarding,
-  onboardingFormAnswers,
-  onboardingQuestions,
-} from "@/app/db/schema";
+import { onboarding, onboardingFormAnswers } from "@/app/db/schema";
 import type { OnboardingStatus } from "@/app/types/onboarding";
 import { eq } from "drizzle-orm";
 
@@ -82,7 +74,7 @@ export async function updateOnboardingStatus(
   status: OnboardingStatus
 ): Promise<number | undefined> {
   try {
-    let onboardingRecord = await db
+    const onboardingRecord = await db
       .select({ id: onboarding.id })
       .from(onboarding)
       .where(eq(onboarding.slug, slug));

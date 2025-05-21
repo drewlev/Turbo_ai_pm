@@ -24,7 +24,6 @@ export const AddLoom: React.FC<AddLoomProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [loomUrl, setLoomUrl] = useState(initialLoomUrl || "");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [currentLoomUrl, setCurrentLoomUrl] = useState(initialLoomUrl);
 
   const handleAddLoom = async (taskId: number) => {
@@ -48,19 +47,19 @@ export const AddLoom: React.FC<AddLoomProps> = ({
   };
 
   const handleDeleteLoom = async () => {
-    setIsDeleting(true);
+    // setIsDeleting(true);
     try {
       const result = await deleteLoomFromTask(taskId);
       if (result.success) {
         setCurrentLoomUrl(undefined);
         onLoomDeleted?.();
         setTimeout(() => {
-          setIsDeleting(false);
+          // setIsDeleting(false);
         }, 500);
       }
     } catch (error) {
       console.error("Failed to delete Loom:", error);
-      setIsDeleting(false);
+      // setIsDeleting(false);
     }
   };
 
@@ -99,7 +98,7 @@ export const AddLoom: React.FC<AddLoomProps> = ({
             variant="outline"
             size="sm"
             onClick={() => handleAddLoom(taskId)}
-            className="h-8 w-8 p-0 hover:bg-white/10"
+            className="w-auto h-8 p-0 hover:bg-white/10"
           >
             <Check className="h-4 w-4 text-green-300" />
           </Button>
@@ -170,11 +169,11 @@ export const AddLoom: React.FC<AddLoomProps> = ({
               size="sm"
               onClick={() => setIsEditing(true)}
               className={cn(
-                "flex items-center gap-2",
-                "bg-white/10 hover:bg-white/20",
-                "text-gray-300 hover:text-white",
-                "border-gray-700 hover:border-gray-600",
-                "transition-colors duration-200"
+                // "flex items-center gap-2",
+                // "bg-white/10 hover:bg-white/20",
+                // "text-gray-300 hover:text-white",
+                // "border-gray-700 hover:border-gray-600",
+                // "transition-colors duration-200"
               )}
             >
               <Image

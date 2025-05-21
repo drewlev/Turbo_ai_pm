@@ -8,7 +8,7 @@ export const ClientSidebarMenu = () => {
   const router = useRouter();
 
   return (
-    <SidebarMenu className="bg-[#181921] px-2">
+    <SidebarMenu className="px-2">
       <SidebarMenuItem>
         <SidebarMenuButton
           className="text-[#d2d3e0]"
