@@ -69,6 +69,7 @@ export function Combobox({
             role="combobox"
             aria-expanded={open}
             className={cn("w-[200px] justify-between", className)}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center">
               {!multiSelect && selectedOptions[0]?.icon}
@@ -78,12 +79,20 @@ export function Combobox({
           </Button>
         )}
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start" sideOffset={4}>
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
-          <CommandList>
+      <PopoverContent
+        className="w-[200px] p-0"
+        align="start"
+        sideOffset={4}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Command onClick={(e) => e.stopPropagation()}>
+          <CommandInput
+            placeholder={searchPlaceholder}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <CommandList onClick={(e) => e.stopPropagation()}>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup onClick={(e) => e.stopPropagation()}>
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
@@ -100,6 +109,7 @@ export function Combobox({
                       setOpen(false);
                     }
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-center">
                     <Check

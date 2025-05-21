@@ -24,28 +24,28 @@ import { StatusButton } from "@/components/tasks/status-button";
 import { daysOutDisplayer } from "@/lib/date-and-time";
 import { ColumnDef } from "@tanstack/react-table";
 const columns: ColumnDef<TaskTableTask>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="border-[var(--border-dark)]"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="border-[var(--border-dark)]"
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+  // {
+  //   id: "select",
+  //   header: ({ table }) => (
+  //     <Checkbox
+  //       checked={table.getIsAllPageRowsSelected()}
+  //       onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+  //       aria-label="Select all"
+  //       className="border-[var(--border-dark)]"
+  //     />
+  //   ),
+  //   cell: ({ row }) => (
+  //     <Checkbox
+  //       checked={row.getIsSelected()}
+  //       onCheckedChange={(value) => row.toggleSelected(!!value)}
+  //       aria-label="Select row"
+  //       className="border-[var(--border-dark)]"
+  //       onClick={(e) => e.stopPropagation()}
+  //     />
+  //   ),
+  //   enableSorting: false,
+  //   enableHiding: false,
+  // },
   {
     accessorKey: "status",
     header: "Status",
@@ -53,6 +53,7 @@ const columns: ColumnDef<TaskTableTask>[] = [
       const status = row.getValue("status") as TaskTableTask["status"];
       return (
         <StatusButton
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
           status={status}
           taskId={parseInt(row.original.id)}
           onStatusUpdated={() => {}}

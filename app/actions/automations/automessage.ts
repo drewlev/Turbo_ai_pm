@@ -1,13 +1,13 @@
 "use server";
 import db from "@/app/db";
-import { slackUsers, calendarEvents, clients, projects } from "@/app/db/schema";
+import {  calendarEvents, clients, projects } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { sendMessageToSlack } from "../slack";
 import type { clients as ClientType } from "@/app/db/schema";
 
-export async function getSlackUsers() {
-  const slackUsers = await db.query.slackUsers.findMany();
-}
+// export async function getSlackUsers() {
+//   const slackUsers = await db.query.slackUsers.findMany();
+// }
 
 type Attendee = {
   email: string;
