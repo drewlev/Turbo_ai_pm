@@ -15,10 +15,13 @@ export default function CustomAuth() {
     setLoading(true);
 
     try {
+      // Start the OAuth flow with Google
+      // redirectUrl: Where to send the user after Google authentication
+      // redirectUrlComplete: Where to send the user after Clerk completes the sign-up
       await signUp!.authenticateWithRedirect({
-        strategy: "oauth_google", // use oauth_github or others if desired
-        redirectUrl: "/app",
-        redirectUrlComplete: "/app",
+        strategy: "oauth_google",
+        redirectUrl: "/sso-callback", // First stop: our SSO callback page to handle the session
+        redirectUrlComplete: "/app", // Final destination: our app's main page
       });
     } catch (err) {
       console.error("Auth error", err);
