@@ -1,102 +1,119 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { Circle, MessageSquare, Check, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export function SnapshotSummary() {
   return (
-    <section className="mb-8">
-      <Card className="p-6 shadow-sm bg-[var(--background-dark)/10] border-[var(--border-dark)]">
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
-          {/* Left Column (70%) */}
-          <div className="lg:col-span-5 space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Project Status
-              </h3>
-              <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
-                The website redesign project is currently in the design phase.
-                Initial wireframes have been approved, and the team is now
-                working on high-fidelity mockups. Client feedback has been
-                positive, but there are concerns about the timeline for the
-                development phase.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Top 3 Next Actions
-              </h3>
-              <ul className="space-y-2">
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>Complete homepage design by May 15</span>
-                </li>
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>Schedule design review meeting with client</span>
-                </li>
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>Finalize content requirements for product pages</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Open Questions
-              </h3>
-              <ul className="space-y-2">
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>
-                    Will the client provide product photography or should we
-                    source stock images?
-                  </span>
-                </li>
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>Do we need to support IE11 for this project?</span>
-                </li>
-              </ul>
-            </div>
+    <div className="flex flex-col gap-4 p-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div className="text-xs text-[#6e6a68]">Project Phase</div>
+          <div className="text-xs text-[#6e6a68]">Client Contact</div>
+          <div className="text-xs text-[#6e6a68]">Last Loom Sent</div>
+        </div>
+        <div className="space-y-4">
+          <div>Design 2/4</div>
+          <div className="flex items-center gap-2">
+            <Avatar className="h-5 w-5">
+              <AvatarImage
+                src="/placeholder.svg?height=20&width=20"
+                alt="Alex Levine"
+              />
+              <AvatarFallback>AL</AvatarFallback>
+            </Avatar>
+            <span>Alex Levine</span>
+            <span className="text-[#6e6a68]">alex@rallyhq.com</span>
           </div>
-
-          {/* Right Column (30%) */}
-          <div className="lg:col-span-2 space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Project Phase
-              </h3>
-              <div className="text-sm px-3 py-2 bg-[var(--background-dark)] text-[var(--text-primary)] border border-[var(--border-accent)] rounded-md inline-block">
-                Design (2 of 4)
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Client Contact
-              </h3>
-              <div className="text-sm space-y-1">
-                <p className="font-medium text-[var(--text-primary)]">
-                  Sarah Johnson
-                </p>
-                <p className="text-[var(--text-secondary)]">
-                  sarah@acmeinc.com
-                </p>
-                <p className="text-[var(--text-secondary)]">(555) 123-4567</p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Last Loom Sent
-              </h3>
-              <p className="text-sm text-[var(--text-secondary)]">
-                May 8, 2025 (2 days ago)
-              </p>
-              <p className="text-sm text-[var(--text-primary)] mt-1 cursor-pointer hover:text-[var(--text-secondary)] transition-colors">
-                View recording →
-              </p>
-            </div>
+          <div className="flex items-center gap-2">
+            <span>May 8, 2025 (2 days ago)</span>
+            <Link href="#" className="text-[#dd743b] text-sm flex items-center">
+              View Recording <ArrowRight className="h-3 w-3 ml-1" />
+            </Link>
           </div>
         </div>
-      </Card>
-    </section>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 t">
+        <div>
+          <div className="text-xs text-[#6e6a68] flex items-center gap-2 mb-2">
+            <Circle className="h-3 w-3 fill-[#5092e0] text-[#5092e0]" />
+            Project Status
+          </div>
+          <Card className="bg-[#1f1e1e] border-[#292828] p-3 text-sm h-full">
+            <p className="text-white">
+              The project is progressing as expected. Wireframes are approved,
+              and the team is working on mockups. Client feedback is positive,
+              but timeline concerns remain.
+            </p>
+          </Card>
+        </div>
+
+        <div>
+          <div className="text-xs text-[#6e6a68] flex items-center gap-2 mb-2">
+            <Check className="h-3 w-3 text-[#55e050]" />
+            Top 3 Next Actions
+          </div>
+          <Card className="bg-[#1f1e1e] border-[#292828] p-3 text-sm h-full">
+            <ul className="space-y-2">
+              <li className="flex items-start gap-2">
+                <div className="h-4 w-4 mt-0.5 flex-shrink-0">
+                  <Check className="h-4 w-4 text-[#55e050]" />
+                </div>
+                <span className="text-white">
+                  Complete homepage design by May 15
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="h-4 w-4 mt-0.5 flex-shrink-0">
+                  <Check className="h-4 w-4 text-[#55e050]" />
+                </div>
+                <span className="text-white">
+                  Schedule design review meeting with Cees
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="h-4 w-4 mt-0.5 flex-shrink-0">
+                  <Check className="h-4 w-4 text-[#55e050]" />
+                </div>
+                <span className="text-white">
+                  Finalize content for product pages
+                </span>
+              </li>
+            </ul>
+          </Card>
+        </div>
+
+        <div>
+          <div className="text-xs text-[#6e6a68] flex items-center gap-2 mb-2">
+            <MessageSquare className="h-3 w-3 text-[#5092e0]" />
+            Open Questions
+          </div>
+          <Card className="bg-[#1f1e1e] border-[#292828] p-3 text-sm h-full">
+            <ul className="space-y-2">
+              <li className="flex items-start gap-2">
+                <div className="h-4 w-4 mt-0.5 flex-shrink-0">
+                  <MessageSquare className="h-4 w-4 text-[#5092e0]" />
+                </div>
+                <span className="text-white">
+                  Will the client provide product photography or should we
+                  source stock images?
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="h-4 w-4 mt-0.5 flex-shrink-0">
+                  <MessageSquare className="h-4 w-4 text-[#5092e0]" />
+                </div>
+                <span className="text-white">
+                  Do we need to support RTL for this project?
+                </span>
+              </li>
+            </ul>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

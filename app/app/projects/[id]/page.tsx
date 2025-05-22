@@ -6,7 +6,8 @@ import { MeetingsSummary } from "@/app/app/projects/[id]/components/meeting-summ
 import { SlackActivity } from "@/app/app/projects/[id]/components/slack-activity";
 import { getTasksByProjectId } from "@/app/actions/tasks";
 import Frame from "@/components/vercel-tabs";
-
+import { SettingsSection } from "@/app/app/projects/[id]/components/settings/setting";
+import { getProjectById, getProjectDetails } from "@/app/actions/projects";
 type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -15,6 +16,53 @@ type Props = {
 export default async function Dashboard({ params, searchParams }: Props) {
   const [resolvedParams] = await Promise.all([params, searchParams]);
   const tasks = await getTasksByProjectId(Number(resolvedParams.id));
+  const projectDetails = await getProjectDetails(Number(resolvedParams.id));
+
+  if (!projectDetails) {
+    return <div>Project not found</div>;
+  }
+
+  const { project, clients } = projectDetails;
+
+  if (project.status === "pending") {
+    return (
+      <div className="flex min-h-screen bg-[var(--background-dark)]">
+        {/* Main Content */}
+        <div className="flex-1">
+          {/* Sticky Header */}
+          <ProjectHeader />
+
+          {/* Main Content Area */}
+          <main className="max-w-[1200px] mx-auto px-8">
+            <Frame
+              defaultValue="settings"
+              tabs={[
+                {
+                  label: "Settings",
+                  value: "settings",
+                  content: (
+                    <div className="w-full">
+                      <SettingsSection
+                        projectId={project.id}
+                        initialProjectInfo={{
+                          projectName: project.name,
+                          description: project.description || "",
+                          websiteUrl: project.websiteUrl || "",
+                        }}
+                        initialClients={clients}
+                        initialQaItems={projectDetails.qaItems}
+                      />
+                    </div>
+                  ),
+                },
+              ]}
+            />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-[var(--background-dark)]">
       {/* Main Content */}
@@ -37,8 +85,8 @@ export default async function Dashboard({ params, searchParams }: Props) {
                     <SnapshotSummary />
                     <TasksSection tasks={tasks} />
                     <DeliverablesFeed />
-                    <MeetingsSummary />
-                    <SlackActivity />
+                    {/* <MeetingsSummary />
+                    <SlackActivity /> */}
                   </>
                 ),
               },
@@ -52,23 +100,41 @@ export default async function Dashboard({ params, searchParams }: Props) {
                 ),
               },
               {
-                label: "Meetings",
-                value: "meetings",
+                label: "Settings",
+                value: "settings",
                 content: (
                   <div className="w-full">
-                    <MeetingsSummary />
+                    <SettingsSection
+                      projectId={project.id}
+                      initialProjectInfo={{
+                        projectName: project.name,
+                        description: project.description || "",
+                        websiteUrl: project.websiteUrl || "",
+                      }}
+                      initialClients={clients}
+                      initialQaItems={projectDetails.qaItems}
+                    />
                   </div>
                 ),
               },
-              {
-                label: "Files",
-                value: "files",
-                content: (
-                  <>
-                    <DeliverablesFeed />
-                  </>
-                ),
-              },
+              // {
+              //   label: "Meetings",
+              //   value: "meetings",
+              //   content: (
+              //     <div className="w-full">
+              //       <MeetingsSummary />
+              //     </div>
+              //   ),
+              // },
+              // {
+              //   label: "Files",
+              //   value: "files",
+              //   content: (
+              //     <>
+              //       <DeliverablesFeed />
+              //     </>
+              //   ),
+              // },
             ]}
           />
         </main>

@@ -112,17 +112,18 @@ export const calendarEvents = pgTable("calendar_events", {
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  websiteUrl: text("website_url"),
   description: text("description"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  status: text("status"),
+  status: text("status"), // pending, active, completed
 });
 
 export const onboarding = pgTable("onboarding", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").references(() => projects.id),
   slug: text("slug").notNull().unique(), // for link URL
-  status: text("status").notNull(), // ✅ now supports dynamic status strings
+  status: text("status").notNull(), // pending, active, completed
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   submittedAt: timestamp("submitted_at"),
@@ -130,9 +131,8 @@ export const onboarding = pgTable("onboarding", {
 
 export const onboardingFormQuestions = pgTable("onboarding_form_questions", {
   id: serial("id").primaryKey(),
-  order: integer("order").notNull(), // for step order
   type: text("type").$type<"text" | "email" | "url" | "textarea">().notNull(),
-  label: text("label").notNull(),
+  label: text("label").notNull().unique(),
   placeholder: text("placeholder"),
   required: boolean("required").notNull().default(true),
 });
@@ -146,6 +146,7 @@ export const onboardingQuestions = pgTable(
     questionId: integer("question_id")
       .notNull()
       .references(() => onboardingFormQuestions.id),
+    order: integer("order").notNull(), // for step order
   },
   (table) => [primaryKey({ columns: [table.onboardingId, table.questionId] })]
 );
@@ -301,6 +302,8 @@ export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull(),
+  linkedinUrl: text("linkedin_url"),
+  role: text("role"),
   projectId: integer("project").references(() => projects.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -353,12 +356,15 @@ export const meetingRelations = relations(meetings, ({ one, many }) => ({
   importTranscripts: one(importTranscripts),
 }));
 
-export const importTranscriptRelations = relations(importTranscripts, ({ one }) => ({
-  meeting: one(meetings, {
-    fields: [importTranscripts.meetingId],
-    references: [meetings.id],
-  }),
-}));
+export const importTranscriptRelations = relations(
+  importTranscripts,
+  ({ one }) => ({
+    meeting: one(meetings, {
+      fields: [importTranscripts.meetingId],
+      references: [meetings.id],
+    }),
+  })
+);
 
 // Sentence Relations
 export const sentenceRelations = relations(sentences, ({ one }) => ({

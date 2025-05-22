@@ -49,6 +49,8 @@ export function DeliverablesFeed() {
             ) : (
               <div className="aspect-video bg-[var(--border-dark)] relative flex items-center justify-center">
                 <Image
+                  width={200}
+                  height={100}
                   src={deliverable.thumbnail || "/placeholder.svg"}
                   alt={deliverable.title}
                   className="w-full h-full object-cover"

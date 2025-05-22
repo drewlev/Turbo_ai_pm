@@ -22,7 +22,7 @@ export async function processMeetingToTasks(meetingId: number) {
   const tasks = await meetingNotesToTasks(formattedNotes);
 
   // Combine all tasks into a single task
-  const combinedTaskDescription = tasks.tasks
+  const combinedTaskDescription = tasks.data?.tasks
     .map((task: any) => task.description)
     .join("\n\n");
 

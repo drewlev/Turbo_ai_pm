@@ -119,12 +119,12 @@ export function ProjectHeader() {
         </div>
 
         <div className="flex items-center gap-6">
-          <Badge
+          {/* <Badge
             variant="outline"
             className="bg-blue-500 text-[var(--text-primary)] border-[var(--border-accent)] px-3 py-1"
           >
             Design Phase
-          </Badge>
+          </Badge> */}
 
           <div className="flex -space-x-2">
             <AssigneeButton
@@ -136,9 +136,9 @@ export function ProjectHeader() {
             />
           </div>
 
-          <div className="text-sm text-[var(--text-secondary)]">
+          {/* <div className="text-sm text-[var(--text-secondary)]">
             <span>May 1 – Jun 30, 2025</span>
-          </div>
+          </div> */}
         </div>
       </div>
     </header>
