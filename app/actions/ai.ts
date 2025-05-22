@@ -15,11 +15,9 @@ type AIResponse<T> = {
 export async function generateAIResponse<T>({
   systemPrompt,
   userPrompt,
-  responseType,
 }: {
   systemPrompt: string;
   userPrompt: string;
-  responseType: string;
 }): Promise<AIResponse<T>> {
   try {
     const completion = await openai.chat.completions.create({
@@ -77,7 +75,6 @@ export async function meetingNotesToTasks(meetingNotes: string) {
   }>({
     systemPrompt,
     userPrompt: `Here are the meeting notes:\n\n${meetingNotes}\n\nPlease provide a list of tasks for our UX designer based on these notes.`,
-    responseType: "tasks",
   });
 
   return response;

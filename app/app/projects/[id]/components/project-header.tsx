@@ -1,7 +1,6 @@
 "use client";
 import type React from "react";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 import {
   AssigneeButton,
   type Assignee,

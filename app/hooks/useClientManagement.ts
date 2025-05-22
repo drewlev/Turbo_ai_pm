@@ -55,6 +55,7 @@ export function useClientManagement(
           toast.error("Failed to add client");
         }
       } catch (error) {
+        console.error(error);
         toast.error("Failed to add client");
       }
     });
@@ -90,6 +91,7 @@ export function useClientManagement(
           toast.error("Failed to update client");
         }
       } catch (error) {
+        console.error(error);
         toast.error("Failed to update client");
       }
     });
@@ -106,6 +108,7 @@ export function useClientManagement(
           toast.error("Failed to remove client");
         }
       } catch (error) {
+        console.error(error);
         toast.error("Failed to remove client");
       }
     });

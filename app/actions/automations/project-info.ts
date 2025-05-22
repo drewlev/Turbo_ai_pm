@@ -59,7 +59,6 @@ export async function parseQAText(rawText: string) {
   const response = await generateAIResponse<QAResponse>({
     systemPrompt,
     userPrompt: `Please parse the following Q&A text into structured data:\n\n${rawText}`,
-    responseType: "qa",
   });
 
   return response;

@@ -8,7 +8,7 @@ import {
   onboardingFormAnswers,
   onboardingQuestions,
 } from "@/app/db/schema";
-import { eq, inArray, and, or, desc, asc } from "drizzle-orm";
+import { eq, inArray, and, or} from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function getActiveProjects() {

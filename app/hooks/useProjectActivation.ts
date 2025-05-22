@@ -18,6 +18,7 @@ export function useProjectActivation(projectId: number) {
         return false;
       }
     } catch (error) {
+      console.error(error);
       toast.error("Failed to activate project");
       return false;
     } finally {

@@ -2,12 +2,10 @@ import { ProjectHeader } from "@/app/app/projects/[id]/components/project-header
 import { SnapshotSummary } from "@/app/app/projects/[id]/components/snapshot-summary";
 import { TasksSection } from "@/app/app/projects/[id]/components/task-section";
 import { DeliverablesFeed } from "@/app/app/projects/[id]/components/deliverables-feed";
-import { MeetingsSummary } from "@/app/app/projects/[id]/components/meeting-summary";
-import { SlackActivity } from "@/app/app/projects/[id]/components/slack-activity";
 import { getTasksByProjectId } from "@/app/actions/tasks";
 import Frame from "@/components/vercel-tabs";
 import { SettingsSection } from "@/app/app/projects/[id]/components/settings/setting";
-import { getProjectById, getProjectDetails } from "@/app/actions/projects";
+import { getProjectDetails } from "@/app/actions/projects";
 type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

@@ -45,6 +45,7 @@ export function useQAManagement(projectId: number, initialQaItems: QAItem[]) {
         toast.error(result.error || "Failed to process Q&A");
       }
     } catch (error) {
+      console.error(error);
       toast.error("Failed to process Q&A");
     } finally {
       setIsParsing(false);
@@ -66,6 +67,7 @@ export function useQAManagement(projectId: number, initialQaItems: QAItem[]) {
         toast.error("Failed to update Q&A item");
       }
     } catch (error) {
+      console.error(error);
       toast.error("Failed to update Q&A item");
     }
   };
@@ -84,6 +86,7 @@ export function useQAManagement(projectId: number, initialQaItems: QAItem[]) {
         toast.error("Failed to delete Q&A item");
       }
     } catch (error) {
+      console.error(error);
       toast.error("Failed to delete Q&A item");
     }
   };

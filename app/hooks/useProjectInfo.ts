@@ -22,6 +22,7 @@ export function useProjectInfo(projectId: number, initialInfo: ProjectInfo) {
           toast.error("Failed to update project information");
         }
       } catch (error) {
+        console.error(error);
         toast.error("Failed to update project information");
       }
     });
