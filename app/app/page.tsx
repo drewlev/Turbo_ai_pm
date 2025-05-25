@@ -60,7 +60,6 @@ export default async function TaskManagementApp() {
             tasks={transformedTasks}
             title="Todo"
             count={tasks.length}
-            projects={projects}
             availableAssignees={availableAssignees}
           />
         </TabsContent>

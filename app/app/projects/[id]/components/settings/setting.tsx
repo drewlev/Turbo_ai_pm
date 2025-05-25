@@ -10,18 +10,17 @@ import { useQAManagement } from "@/app/hooks/useQAManagement";
 import { useProjectActivation } from "@/app/hooks/useProjectActivation";
 import type { SettingsSectionProps } from "@/app/types/project";
 
-export function SettingsSection({
-  projectId,
-  initialProjectInfo,
-  initialClients,
-  initialQaItems,
-}: SettingsSectionProps) {
+export function SettingsSection({ projectDetails }: SettingsSectionProps) {
   const {
     projectInfo,
     setProjectInfo,
     handleSubmit: handleProjectInfoSubmit,
     isPending: isProjectInfoPending,
-  } = useProjectInfo(projectId, initialProjectInfo);
+  } = useProjectInfo(projectDetails.project.id, {
+    projectName: projectDetails.project.name,
+    description: projectDetails.project.description || "",
+    websiteUrl: projectDetails.project.websiteUrl || "",
+  });
 
   const {
     clients,
@@ -35,7 +34,7 @@ export function SettingsSection({
     handleEditClient,
     handleRemoveClient,
     isPending: isClientPending,
-  } = useClientManagement(projectId, initialClients);
+  } = useClientManagement(projectDetails.project.id, projectDetails.clients);
 
   const {
     qaText,
@@ -47,19 +46,27 @@ export function SettingsSection({
     setEditingQAItem,
     handleEditQAItem,
     handleDeleteQAItem,
-  } = useQAManagement(projectId, initialQaItems);
+  } = useQAManagement(projectDetails.project.id, projectDetails.qaItems);
 
-  const { activateProject, isPending: isActivating } =
-    useProjectActivation(projectId);
+  const { activateProject, isPending: isActivating } = useProjectActivation(
+    projectDetails.project.id
+  );
 
   return (
     <div className="space-y-6">
-      <ProjectSetupProgress
-        projectInfo={projectInfo}
-        clients={clients}
-        onActivateProject={activateProject}
-        isPending={isActivating}
-      />
+      {projectDetails.project.status !== "active" && (
+        <ProjectSetupProgress
+          projectInfo={projectInfo}
+          clients={clients}
+          onActivateProject={activateProject}
+          isPending={isActivating}
+          savedProjectInfo={{
+            name: projectDetails.project.name,
+            description: projectDetails.project.description,
+            websiteUrl: projectDetails.project.websiteUrl,
+          }}
+        />
+      )}
 
       <ProjectInfoForm
         projectInfo={projectInfo}

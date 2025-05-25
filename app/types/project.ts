@@ -21,10 +21,17 @@ export type QAItem = {
 };
 
 export type SettingsSectionProps = {
-  projectId: number;
-  initialProjectInfo: ProjectInfo;
-  initialClients: Client[];
-  initialQaItems: QAItem[];
+  projectDetails: {
+    project: {
+      id: number;
+      name: string;
+      description: string | null;
+      websiteUrl: string | null;
+      status: string;
+    };
+    clients: Client[];
+    qaItems: QAItem[];
+  };
 };
 
 export type NewClient = {

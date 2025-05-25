@@ -93,11 +93,6 @@ interface TaskTableClientProps {
   tasks: TaskTableTask[];
   title: string;
   count: number;
-  projects: {
-    id: number;
-    title: string;
-    url: string;
-  }[];
   availableAssignees: any[];
 }
 
@@ -105,7 +100,6 @@ export function TaskTableClient({
   tasks,
   title,
   count,
-  projects,
   availableAssignees,
 }: TaskTableClientProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -136,13 +130,13 @@ export function TaskTableClient({
           {count}
         </span>
       </h2>
-      <div className="rounded-md border border-gray-500 overflow-hidden">
+      <div className="rounded-md border border-[var(--box-accent)] overflow-hidden">
         <Table>
-          <TableHeader className="bg-[var(--sidebar)] rounded-t-md">
+          <TableHeader className="bg-transparent rounded-t-md">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="hover:bg-transparent border-b border-gray-500"
+                className="hover:bg-transparent border-b border-[var(--box-accent)]"
               >
                 {headerGroup.headers.map((header) => (
                   <TableHead
@@ -204,7 +198,6 @@ export function TaskTableClient({
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           selectedTask={selectedTask}
-          projects={projects}
           availableAssignees={availableAssignees}
         />
       )}

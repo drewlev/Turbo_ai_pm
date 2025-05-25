@@ -8,13 +8,16 @@ import {
   onboardingFormAnswers,
   onboardingQuestions,
 } from "@/app/db/schema";
-import { eq, inArray, and, or} from "drizzle-orm";
+import { eq, inArray, and, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { generateProjectSlug } from "@/app/schemas/project";
+import type { ProjectFormData, ProjectUpdateData } from "@/app/schemas/project";
 
 export async function getActiveProjects() {
   const activeProjects = await db.query.projects.findMany({
     where: or(eq(projects.status, "active"), eq(projects.status, "pending")),
   });
+
   return activeProjects;
 }
 
@@ -25,34 +28,47 @@ export async function getProjectById(id: number) {
   return project;
 }
 
-export async function createProject(project: typeof projects.$inferInsert) {
+export async function createProject(data: ProjectFormData) {
   // 1. Insert the project
-  const [newProject] = await db.insert(projects).values(project).returning();
-
-  if (!newProject) throw new Error("Failed to create project");
-
-  // 2. Create a slug from the company name + nanoid
-  const slugBase =
-    project.name
-      ?.toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "") || "project";
-  // const slug = `${slugBase}`;
-
-  // 3. Create the onboarding record
-  const [newOnboarding] = await db
-    .insert(onboarding)
+  const [newProject] = await db
+    .insert(projects)
     .values({
-      projectId: newProject.id,
-      slug: slugBase,
+      name: data.name,
+      description: data.description,
+      websiteUrl: data.websiteUrl,
       status: "pending",
     })
     .returning();
 
+  if (!newProject) throw new Error("Failed to create project");
+
+  // 2. Create the onboarding record with consistent slug
+  const slug = generateProjectSlug(data.name, newProject.id);
+  const [newOnboarding] = await db
+    .insert(onboarding)
+    .values({
+      projectId: newProject.id,
+      slug,
+      status: "pending",
+    })
+    .returning();
+
+  // 3. Add clients if any
+  if (data.clients.length > 0) {
+    await db.insert(clients).values(
+      data.clients.map((client) => ({
+        projectId: newProject.id,
+        name: client.name,
+        email: client.email || "",
+        linkedinUrl: client.linkedin || null,
+      }))
+    );
+  }
+
   return {
     project: newProject,
     onboarding: newOnboarding,
-    onboardingLink: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding/${slugBase}`,
+    onboardingLink: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding/${slug}`,
   };
 }
 
@@ -104,19 +120,12 @@ export async function removeClient(clientId: number) {
 
 export async function updateProjectInfo(
   projectId: number,
-  data: {
-    name?: string;
-    description?: string;
-    websiteUrl?: string;
-  }
+  data: ProjectUpdateData
 ) {
-  console.log("Updating project info", data);
   const [updatedProject] = await db
     .update(projects)
     .set({
-      name: data.name,
-      description: data.description,
-      websiteUrl: data.websiteUrl,
+      ...data,
       updatedAt: new Date(),
     })
     .where(eq(projects.id, projectId))
@@ -322,10 +331,19 @@ export async function updateProjectStatus(projectId: number, status: string) {
       .where(eq(projects.id, projectId))
       .returning();
 
+    // Revalidate both the specific project page and the entire app layout
     revalidatePath(`/projects/${projectId}`);
+    revalidatePath("/", "layout");
+
     return result[0];
   } catch (error) {
     console.error("Error updating project status:", error);
     return null;
   }
+}
+
+export async function revalidateProjectPaths() {
+  revalidatePath("/", "layout");
+  revalidatePath("/app", "layout");
+  revalidatePath("/app/projects", "page");
 }

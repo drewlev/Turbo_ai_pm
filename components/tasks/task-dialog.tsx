@@ -21,11 +21,12 @@ import { AddLoom } from "@/components/tasks/components/add-loom";
 import { z } from "zod";
 import { TaskTableTask } from "@/app/types/task";
 import { AssigneeButton } from "@/components/assign-users-button";
+import { getActiveProjects } from "@/app/actions/projects";
 
 const DateButton = ({
   date,
-  // onValueChange,
-}: {
+}: // onValueChange,
+{
   date: string;
   // onValueChange: (value: string) => void;
 }) => {
@@ -161,18 +162,15 @@ const taskFormSchema = z.object({
   assigneeIds: z.array(z.number()).min(1, "At least one assignee is required"),
 });
 
-
 export default function TaskModal({
   open,
   onOpenChange,
   selectedTask,
-  projects,
   availableAssignees,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedTask: TaskTableTask | null;
-  projects: { title: string; url: string; id: number }[];
   availableAssignees: { id: number; name: string }[];
 }) {
   const [formData, setFormData] = useState({
@@ -184,6 +182,24 @@ export default function TaskModal({
     assignees: [] as { url: string; id: number }[],
     date: "",
   });
+
+  const [projects, setProjects] = useState<
+    { title: string; url: string; id: number }[]
+  >([]);
+
+  // Fetch fresh project data when dialog opens
+  useEffect(() => {
+    if (open) {
+      getActiveProjects().then((activeProjects) => {
+        const formattedProjects = activeProjects.map((project) => ({
+          title: project.name,
+          url: `/app/projects/${project.id}`,
+          id: project.id,
+        }));
+        setProjects(formattedProjects);
+      });
+    }
+  }, [open]);
 
   // Initialize form when dialog opens with a task
   useEffect(() => {
@@ -225,6 +241,8 @@ export default function TaskModal({
     value: project.id.toString(),
     label: project.title,
   }));
+
+  console.log(projectOptions);
 
   const handleCreateTask = async () => {
     try {

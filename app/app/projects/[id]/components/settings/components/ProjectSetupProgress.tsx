@@ -10,28 +10,35 @@ type ProjectSetupProgressProps = {
   clients: Client[];
   onActivateProject: () => void;
   isPending: boolean;
+  savedProjectInfo: {
+    name: string;
+    description: string | null;
+    websiteUrl: string | null;
+  };
 };
 
 const REQUIRED_STEPS = [
   {
     id: "projectName",
     label: "Project Name",
-    isComplete: (info: ProjectInfo) => !!info.projectName?.trim(),
+    isComplete: (savedInfo: { name: string }) => !!savedInfo.name?.trim(),
   },
   {
     id: "websiteUrl",
     label: "Website URL",
-    isComplete: (info: ProjectInfo) => !!info.websiteUrl?.trim(),
+    isComplete: (savedInfo: { websiteUrl: string | null }) =>
+      !!savedInfo.websiteUrl?.trim(),
   },
   {
     id: "description",
     label: "Project Description",
-    isComplete: (info: ProjectInfo) => !!info.description?.trim(),
+    isComplete: (savedInfo: { description: string | null }) =>
+      !!savedInfo.description?.trim(),
   },
   {
     id: "clients",
     label: "Key Clients",
-    isComplete: (_: ProjectInfo, clients: Client[]) => clients.length > 0,
+    isComplete: (_: any, clients: Client[]) => clients.length > 0,
   },
 ];
 
@@ -40,9 +47,10 @@ export function ProjectSetupProgress({
   clients,
   onActivateProject,
   isPending,
+  savedProjectInfo,
 }: ProjectSetupProgressProps) {
   const completedSteps = REQUIRED_STEPS.filter((step) =>
-    step.isComplete(projectInfo, clients)
+    step.isComplete(savedProjectInfo, clients)
   ).length;
   const progress = (completedSteps / REQUIRED_STEPS.length) * 100;
   const isProjectReady = completedSteps === REQUIRED_STEPS.length;
@@ -62,7 +70,7 @@ export function ProjectSetupProgress({
 
         <div className="space-y-3">
           {REQUIRED_STEPS.map((step) => {
-            const isComplete = step.isComplete(projectInfo, clients);
+            const isComplete = step.isComplete(savedProjectInfo, clients);
             return (
               <div key={step.id} className="flex items-center gap-3 text-sm">
                 {isComplete ? (

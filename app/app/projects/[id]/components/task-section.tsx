@@ -29,7 +29,7 @@ export async function TasksSection({
             <h2 className="text-xl font-semibold text-[var(--text-primary)]">
               Tasks
             </h2>
-            <TabsList className="bg-[var(--background-dark)]">
+            {/* <TabsList className="bg-[var(--background-dark)]">
               <TabsTrigger
                 value="list"
                 className="flex items-center gap-2 data-[state=active]:bg-gray-500"
@@ -42,7 +42,7 @@ export async function TasksSection({
               >
                 <LayoutGrid className="h-4 w-4 text-white" />
               </TabsTrigger>
-            </TabsList>
+            </TabsList> */}
           </div>
 
           <TabsContent value="list">
@@ -50,7 +50,6 @@ export async function TasksSection({
               tasks={transformedTasks}
               title="All Tasks"
               count={tasks.length}
-              projects={projects}
               availableAssignees={availableAssignees}
             />
           </TabsContent>

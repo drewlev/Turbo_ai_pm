@@ -116,7 +116,7 @@ export const projects = pgTable("projects", {
   description: text("description"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  status: text("status"), // pending, active, completed
+  status: text("status").notNull().default("pending"), // pending, active, completed
 });
 
 export const onboarding = pgTable("onboarding", {

@@ -20,6 +20,8 @@ export default async function Dashboard({ params, searchParams }: Props) {
     return <div>Project not found</div>;
   }
 
+  console.log(projectDetails);
+
   const { project, clients } = projectDetails;
 
   if (project.status === "pending") {
@@ -40,16 +42,7 @@ export default async function Dashboard({ params, searchParams }: Props) {
                   value: "settings",
                   content: (
                     <div className="w-full">
-                      <SettingsSection
-                        projectId={project.id}
-                        initialProjectInfo={{
-                          projectName: project.name,
-                          description: project.description || "",
-                          websiteUrl: project.websiteUrl || "",
-                        }}
-                        initialClients={clients}
-                        initialQaItems={projectDetails.qaItems}
-                      />
+                      <SettingsSection projectDetails={projectDetails} />
                     </div>
                   ),
                 },
@@ -102,16 +95,7 @@ export default async function Dashboard({ params, searchParams }: Props) {
                 value: "settings",
                 content: (
                   <div className="w-full">
-                    <SettingsSection
-                      projectId={project.id}
-                      initialProjectInfo={{
-                        projectName: project.name,
-                        description: project.description || "",
-                        websiteUrl: project.websiteUrl || "",
-                      }}
-                      initialClients={clients}
-                      initialQaItems={projectDetails.qaItems}
-                    />
+                    <SettingsSection projectDetails={projectDetails} />
                   </div>
                 ),
               },

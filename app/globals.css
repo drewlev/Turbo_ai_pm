@@ -84,6 +84,7 @@
   --text-secondary: #858699;
   --turbo-blue: #5092e0;
   --box-accent: #292828;
+  --hover: #ffffff33;
 }
 
 .dark {
@@ -123,6 +124,7 @@
   --border-accent: #4c4f6b;
   --text-primary: #d2d3e0;
   --text-secondary: #858699;
+  --hover: #ffffff33;
 }
 
 @layer base {

@@ -22,45 +22,42 @@ import { getActiveProjects } from "@/app/actions/projects";
 import { getUsers } from "@/app/actions/users";
 import { ClientSidebarMenu } from "./client-sidebar";
 
-const projects = await getActiveProjects();
-const listProjects = projects.map((project) => ({
-  title: project.name,
-  url: `/app/projects/${project.id}`,
-  id: project.id,
-}));
-
-const availableAssignees = await getAvailableAssignees();
-
-// users to view and assign tasks
-const users = await getUsers();
-const listUsers = users.map((user) => ({
-  title: user.name || user.email,
-  url: `/app/users/${user.id}`,
-  id: user.id,
-}));
-
-console.log("listProjects", listProjects);
-
-const data = {
-  navMain: [
-    {
-      title: "Projects",
-      url: "#",
-      // isActive: true,
-      items: listProjects,
-    },
-    {
-      title: "Team",
-      url: "#",
-      // isActive: false,
-      items: listUsers,
-    },
-  ],
-};
-
 export async function AppSidebar() {
+  const projects = await getActiveProjects();
+  const listProjects = projects.map((project) => ({
+    title: project.name,
+    url: `/app/projects/${project.id}`,
+    id: project.id,
+  }));
+
+  const availableAssignees = await getAvailableAssignees();
+  const users = await getUsers();
+  const listUsers = users.map((user) => ({
+    title: user.name || user.email,
+    url: `/app/users/${user.id}`,
+    id: user.id,
+  }));
+
+  const data = {
+    navMain: [
+      {
+        title: "Projects",
+        url: "#",
+        items: listProjects,
+      },
+      {
+        title: "Team",
+        url: "#",
+        items: listUsers,
+      },
+    ],
+  };
+
   return (
-    <Sidebar className="border-r border-[#2c2d3c] bg-[#181921] text-[#d2d3e0]">
+    <Sidebar
+      className="border-r border-[#2c2d3c] bg-[#181921] text-[#d2d3e0]"
+      key={Date.now()}
+    >
       <SidebarHeader className="border-b border-[#2c2d3c]">
         <div className="p-4 flex items-center justify-between">
           <h1 className="font-semibold text-white">Turbo</h1>
@@ -70,10 +67,7 @@ export async function AppSidebar() {
           </Avatar>
         </div>
 
-        <NewTask
-          availableAssignees={availableAssignees}
-          projects={listProjects}
-        />
+        <NewTask availableAssignees={availableAssignees} />
         <ClientSidebarMenu />
       </SidebarHeader>
 

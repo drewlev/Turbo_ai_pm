@@ -13,42 +13,12 @@ import { X, Plus, Pencil, Trash2, Copy, Check } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { toast } from "sonner";
 import { z } from "zod";
-import { createProject } from "@/app/actions/projects";
+import { createProject, revalidateProjectPaths } from "@/app/actions/projects";
+import { clientSchema, projectFormSchema } from "@/app/schemas/project";
+import type { ClientData, ProjectFormData } from "@/app/schemas/project";
 
 const linkedinRegex =
   /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/;
-
-const clientSchema = z.object({
-  name: z.string().min(1, "Client name is required"),
-  linkedin: z
-    .string()
-    .refine(
-      (val) => !val || val.match(linkedinRegex),
-      "Invalid LinkedIn URL. Please use a format like https://www.linkedin.com/in/your-profile or linkedin.com/in/your-profile"
-    )
-    .optional(),
-  email: z
-    .string()
-    .refine(
-      (val) => !val || val.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
-      "Invalid email address"
-    )
-    .optional(),
-});
-
-const projectFormSchema = z.object({
-  name: z.string().min(1, "Project name is required"),
-  scope: z.string().optional(),
-  clients: z.array(clientSchema).default([]),
-});
-
-type ProjectFormData = z.infer<typeof projectFormSchema>;
-
-type Client = {
-  name: string;
-  linkedin?: string;
-  email?: string;
-};
 
 export default function ProjectModal({
   open,
@@ -58,9 +28,9 @@ export default function ProjectModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const [name, setName] = useState("");
-  const [scope, setScope] = useState("");
-  const [clients, setClients] = useState<Client[]>([]);
-  const [newClient, setNewClient] = useState<Client>({
+  const [description, setDescription] = useState("");
+  const [clients, setClients] = useState<ClientData[]>([]);
+  const [newClient, setNewClient] = useState<ClientData>({
     name: "",
     linkedin: "",
     email: "",
@@ -73,7 +43,7 @@ export default function ProjectModal({
     if (!open) {
       // Reset all form states when dialog closes
       setName("");
-      setScope("");
+      setDescription("");
       setClients([]);
       setNewClient({ name: "", linkedin: "", email: "" });
       setEditingIndex(null);
@@ -100,7 +70,9 @@ export default function ProjectModal({
       setNewClient({ name: "", linkedin: "", email: "" });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errorMessages = error.errors.map((err) => err.message).join("\n");
+        const errorMessages = error.errors
+          .map((err: { message: string }) => err.message)
+          .join("\n");
         toast.error(errorMessages);
       } else {
         toast.error("Failed to add client");
@@ -129,7 +101,6 @@ export default function ProjectModal({
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // const errorMessages = error.errors.map((err) => err.message).join("\n");
         toast.error("Failed to save client changes");
       } else {
         toast.error("Failed to save client changes");
@@ -146,13 +117,12 @@ export default function ProjectModal({
     try {
       const formData: ProjectFormData = {
         name,
-        scope,
+        description,
         clients,
       };
 
       const validatedData = projectFormSchema.parse(formData);
 
-      console.log("Creating project:", validatedData);
       const { project, onboarding, onboardingLink } = await createProject(
         validatedData
       );
@@ -164,7 +134,9 @@ export default function ProjectModal({
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errorMessages = error.errors.map((err) => err.message).join("\n");
+        const errorMessages = error.errors
+          .map((err: { message: string }) => err.message)
+          .join("\n");
         toast.error(errorMessages);
       } else {
         toast.error("Failed to create project");
@@ -220,7 +192,14 @@ export default function ProjectModal({
 
             <div className="flex justify-end">
               <DialogClose asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">Done</Button>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={async () => {
+                    await revalidateProjectPaths();
+                  }}
+                >
+                  Done
+                </Button>
               </DialogClose>
             </div>
           </div>
@@ -256,8 +235,8 @@ export default function ProjectModal({
             className="border-none bg-transparent text-lg font-medium placeholder:text-gray-500 focus-visible:ring-0 p-0"
           />
           <Textarea
-            value={scope}
-            onChange={(e) => setScope(e.target.value)}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="General scope..."
             className="border-none bg-transparent resize-none min-h-[100px] placeholder:text-gray-500 focus-visible:ring-0 p-0"
           />

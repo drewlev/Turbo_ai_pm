@@ -6,10 +6,8 @@ import { SquarePen } from "lucide-react";
 import TaskModal from "./task-dialog";
 
 export default function NewTask({
-  projects,
   availableAssignees,
 }: {
-  projects: { title: string; url: string; id: number }[];
   availableAssignees: any[];
 }) {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -29,7 +27,6 @@ export default function NewTask({
         open={taskModalOpen}
         onOpenChange={setTaskModalOpen}
         selectedTask={null}
-        projects={projects}
         availableAssignees={availableAssignees}
       />
     </div>
