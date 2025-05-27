@@ -22,6 +22,13 @@ import { StatusButton } from "@/components/tasks/status-button";
 import { DaysOutDisplayer } from "@/lib/date-and-time";
 import { ColumnDef } from "@tanstack/react-table";
 import { StackedInitials } from "../stacked-avatars";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 const columns: ColumnDef<TaskTableTask>[] = [
   // {
   //   id: "select",
@@ -66,15 +73,26 @@ const columns: ColumnDef<TaskTableTask>[] = [
     cell: ({ row }) => <div>{row.getValue("title")}</div>,
   },
   {
-    accessorKey: "date",
-    header: "Date",
+    accessorKey: "dueDate",
+    header: "Due Date",
     cell: ({ row }) => {
-      const date = row.getValue("date") as string;
-      return date ? (
+      const date = row.getValue("dueDate") as string;
+      return (
         <div className="text-xs text-[var(--text-secondary)]">
-          <DaysOutDisplayer dateString={date} />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <DaysOutDisplayer dateString={date} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {date ? new Date(date).toLocaleDateString() : "No due date"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-      ) : null;
+      );
     },
   },
   {

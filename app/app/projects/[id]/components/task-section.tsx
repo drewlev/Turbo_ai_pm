@@ -14,12 +14,8 @@ export async function TasksSection({
   tasks: TaskWithAssigneesType[];
 }) {
   const transformedTasks = transformTasksForUI(tasks);
-  const activeProjects = await getActiveProjects();
-  const projects = activeProjects.map((project) => ({
-    id: project.id,
-    title: project.name,
-    url: project.id.toString(),
-  }));
+  console.log({ transformedTasks });
+
   const availableAssignees = await getAvailableAssignees();
   return (
     <section className="mb-8">

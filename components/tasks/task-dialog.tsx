@@ -25,15 +25,15 @@ import { getActiveProjects } from "@/app/actions/projects";
 
 const DateButton = ({
   date,
-}: // onValueChange,
-{
+  onValueChange,
+}: {
   date: string;
-  // onValueChange: (value: string) => void;
+  onValueChange: (value: string) => void;
 }) => {
   return (
     <DatePicker
       date={date ? new Date(date) : new Date()}
-      // onValueChange={(d) => d && onValueChange(d.toISOString())}
+      onValueChange={(d: Date) => onValueChange(d.toISOString())}
     />
   );
 };
@@ -378,9 +378,9 @@ export default function TaskModal({
             />
             <DateButton
               date={formData.date}
-              // onValueChange={(value) =>
-              //   setFormData((prev) => ({ ...prev, date: value }))
-              // }
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, date: value }))
+              }
             />
           </div>
 
