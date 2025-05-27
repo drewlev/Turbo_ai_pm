@@ -98,7 +98,7 @@ export function ClientManagement({
                     onChange={(e) =>
                       setNewClient({ ...newClient, name: e.target.value })
                     }
-                    className="bg-white/70 border-[var(--border-dark)] focus-visible:ring-blue-500"
+                    className="bg-[var(--input-dark)] border-[var(--border-dark)] focus-visible:ring-blue-500 text-white/50"
                     required
                   />
                 </div>
@@ -113,7 +113,7 @@ export function ClientManagement({
                     onChange={(e) =>
                       setNewClient({ ...newClient, email: e.target.value })
                     }
-                    className="bg-white/70 border-[var(--border-dark)] focus-visible:ring-blue-500"
+                    className="bg-[var(--input-dark)] border-[var(--border-dark)] focus-visible:ring-blue-500 text-white/50"
                     required
                   />
                 </div>
@@ -127,7 +127,7 @@ export function ClientManagement({
                     onChange={(e) =>
                       setNewClient({ ...newClient, role: e.target.value })
                     }
-                    className="bg-white/70 border-[var(--border-dark)] focus-visible:ring-blue-500"
+                    className="bg-[var(--input-dark)] border-[var(--border-dark)] focus-visible:ring-blue-500 text-white/50"
                     placeholder="e.g., Product Manager"
                   />
                 </div>
@@ -148,7 +148,7 @@ export function ClientManagement({
                         linkedinUrl: e.target.value,
                       })
                     }
-                    className="bg-white/70 border-[var(--border-dark)] focus-visible:ring-blue-500"
+                    className="bg-[var(--input-dark)] border-[var(--border-dark)] focus-visible:ring-blue-500 text-white/50"
                     placeholder="https://linkedin.com/in/username"
                   />
                 </div>

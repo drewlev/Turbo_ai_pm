@@ -49,7 +49,7 @@ export function QASection({
               value={qaText}
               onChange={(e) => setQaText(e.target.value)}
               placeholder="Paste your Q&A text here..."
-              className="min-h-[200px] bg-white/70 border-[var(--border-dark)] focus-visible:ring-blue-500"
+              className="min-h-[200px] bg-[var(--input-dark)] border-[var(--border-dark)] focus-visible:ring-blue-500 text-white/50"
             />
           </div>
 

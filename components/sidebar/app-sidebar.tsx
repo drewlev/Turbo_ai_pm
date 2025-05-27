@@ -1,9 +1,9 @@
 "use server";
-
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NewTask from "@/components/tasks/new-task";
 import { getAvailableAssignees } from "@/app/actions/tasks";
-import { UserPlus, HelpCircle } from "lucide-react";
+import { UserPlus, HelpCircle, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -84,15 +84,17 @@ export async function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-[#d2d3e0]">
+            {/* <SidebarMenuButton className="text-[#d2d3e0]">
               <UserPlus className="h-4 w-4" />
               <span>Invite people</span>
-            </SidebarMenuButton>
+            </SidebarMenuButton> */}
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-[#d2d3e0]">
-              <HelpCircle className="h-4 w-4" />
-              <span>Help & Support</span>
+            <SidebarMenuButton className="flex items-center gap-2 text-[#d2d3e0]">
+              <Link href="/app/settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

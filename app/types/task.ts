@@ -1,5 +1,8 @@
 import { TaskWithAssigneesType } from "@/app/actions/tasks";
 import { ColumnDef } from "@tanstack/react-table";
+import { looms } from "@/app/db/schema";
+
+type Loom = typeof looms.$inferSelect;
 
 export type UITask = {
   id: string;
@@ -14,7 +17,7 @@ export type UITask = {
     id: number;
   }[];
   projectId?: number;
-  loomUrl?: string;
+  loomUrl?: Loom[];
 };
 
 export function transformTasksForUI(tasks: TaskWithAssigneesType[]): UITask[] {
@@ -33,7 +36,7 @@ export function transformTasksForUI(tasks: TaskWithAssigneesType[]): UITask[] {
       }))
       .filter((a) => a.label !== ""),
     projectId: task.projectId || undefined,
-    loomUrl: task.looms?.[0]?.loomUrl || undefined,
+    loomUrl: task.looms,
   }));
 }
 

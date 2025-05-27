@@ -27,13 +27,15 @@ export async function processMeetingToTasks(meetingId: number) {
     .join("\n\n");
 
   // Create a single task with all the data
-  await createTaskAndAssign({
+  console.log({ meetingId });
+  const task = await createTaskAndAssign({
     title: `Meeting Tasks - ${meeting.title}`,
     description: combinedTaskDescription,
     projectId: meeting.projectId,
     assigneeID: projectUsers.map((user) => user.id),
+    meetingId: meetingId,
   });
-
+  console.log({ task });
   return meeting;
 }
 

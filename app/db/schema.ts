@@ -229,6 +229,7 @@ export const tasks = pgTable("tasks", {
   status: text("status").notNull().default("todo"),
   priority: text("priority").notNull().default("medium"),
   dueDate: timestamp("due_date"),
+  meetingId: integer("meeting_id").references(() => meetings.id),
 });
 
 export const taskAssignees = pgTable(
@@ -250,6 +251,7 @@ export const looms = pgTable("looms", {
   id: serial("id").primaryKey(),
   taskId: integer("task_id").references(() => tasks.id),
   userId: integer("user_id").references(() => users.id),
+  transcript: text("transcript"),
   loomUrl: text("loom_url").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -317,6 +319,10 @@ export const taskRelations = relations(tasks, ({ one, many }) => ({
   }),
   taskAssignees: many(taskAssignees),
   looms: many(looms),
+  meeting: one(meetings, {
+    fields: [tasks.meetingId],
+    references: [meetings.id],
+  }),
 }));
 
 // Task Assignee Relations
@@ -354,6 +360,7 @@ export const meetingRelations = relations(meetings, ({ one, many }) => ({
   speakers: many(speakers),
   participants: many(participants),
   importTranscripts: one(importTranscripts),
+  tasks: many(tasks),
 }));
 
 export const importTranscriptRelations = relations(
@@ -476,3 +483,4 @@ export const clientRelations = relations(clients, ({ one }) => ({
     references: [projects.id],
   }),
 }));
+

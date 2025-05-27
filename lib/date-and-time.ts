@@ -24,10 +24,8 @@ export const DaysOutDisplayer = ({ dateString }: DaysOutDisplayerProps) => {
         setDisplayString("Invalid Date");
         return;
       }
-      console.log("date", date);
-      console.log("new Date()", new Date());
+
       const daysDifference = differenceInCalendarDays(date, new Date());
-      console.log("daysDifference", daysDifference);
 
       if (daysDifference === 0) {
         setDisplayString("Today");

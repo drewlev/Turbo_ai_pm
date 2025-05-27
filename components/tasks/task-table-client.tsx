@@ -123,7 +123,6 @@ export function TaskTableClient({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [selectedTask, setSelectedTask] = useState<TaskTableTask | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  console.log({ selectedTask });
   const table = useReactTable({
     data: tasks,
     columns,
@@ -177,7 +176,7 @@ export function TaskTableClient({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="group cursor-pointer border-b border-gray-500"
+                  className="group cursor-pointer border-b border-[var(--border-dark)]"
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() => handleRowClick(row.original)}
                 >

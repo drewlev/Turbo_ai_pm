@@ -46,7 +46,7 @@ export function ProjectInfoForm({
                 name="projectName"
                 value={projectInfo.projectName}
                 onChange={handleChange}
-                className="bg-white/70 border-[var(--border-dark)] focus-visible:ring-blue-500"
+                className="bg-[var(--input-dark)] border-[var(--border-dark)] focus-visible:ring-blue-500 text-white/50"
               />
             </div>
             <div className="space-y-2">
@@ -61,7 +61,8 @@ export function ProjectInfoForm({
                 name="websiteUrl"
                 value={projectInfo.websiteUrl || ""}
                 onChange={handleChange}
-                className="bg-white/70 border-[var(--border-dark)] focus-visible:ring-blue-500"
+                className="bg-[var(--input-dark)] border-[var(--border-dark)] focus-visible:ring-blue-500 text-white/50"
+
               />
             </div>
           </div>
@@ -77,8 +78,8 @@ export function ProjectInfoForm({
             value={projectInfo.description}
             onChange={handleChange}
             rows={4}
-            className="bg-white/70 border-[var(--border-dark)] focus-visible:ring-blue-500"
-          />
+            className="bg-[var(--input-dark)] border-[var(--border-dark)] focus-visible:ring-blue-500 text-white/50"
+            />
         </div>
 
         <div className="flex justify-end">

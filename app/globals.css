@@ -85,6 +85,7 @@
   --turbo-blue: #5092e0;
   --box-accent: #292828;
   --hover: #ffffff33;
+  --input-dark: #0c0c0c;
 }
 
 .dark {
@@ -120,7 +121,7 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
   --border-dark: #2c2d3c;
-  --background-dark: #272832;
+  --background-dark: #1c2480;
   --border-accent: #4c4f6b;
   --text-primary: #d2d3e0;
   --text-secondary: #858699;

@@ -134,12 +134,12 @@ const TaskActions = ({
   loomUrl?: string;
   selectedTask: TaskTableTask | null;
 }) => {
-  console.log(selectedTask?.loomUrl);
+
   return (
     <div className="flex items-center justify-between">
       {selectedTask && (
         <div className="flex items-center">
-          <AddLoom taskId={taskId || 0} loomUrl={selectedTask?.loomUrl} />
+          <AddLoom taskId={taskId || 0} loomUrl={selectedTask?.loomUrl?.[0]?.loomUrl} />
         </div>
       )}
       <div className="flex items-center gap-4">
@@ -242,7 +242,7 @@ export default function TaskModal({
     label: project.title,
   }));
 
-  console.log(projectOptions);
+
 
   const handleCreateTask = async () => {
     try {
@@ -288,7 +288,7 @@ export default function TaskModal({
     }
   };
 
-  console.log(formData.status, { formData });
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -394,7 +394,7 @@ export default function TaskModal({
             date={formData.date}
             selectedTask={selectedTask}
             taskId={selectedTask?.id ? parseInt(selectedTask.id) : null}
-            loomUrl={selectedTask?.loomUrl}
+            loomUrl={selectedTask?.loomUrl?.[0]?.loomUrl}
           />
         </div>
       </DialogContent>

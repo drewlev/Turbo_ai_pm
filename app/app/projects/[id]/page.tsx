@@ -6,6 +6,7 @@ import { getTasksByProjectId } from "@/app/actions/tasks";
 import Frame from "@/components/vercel-tabs";
 import { SettingsSection } from "@/app/app/projects/[id]/components/settings/setting";
 import { getProjectDetails } from "@/app/actions/projects";
+import { getLoomsByProjectId } from "@/app/actions/loom";
 type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -15,12 +16,11 @@ export default async function Dashboard({ params, searchParams }: Props) {
   const [resolvedParams] = await Promise.all([params, searchParams]);
   const tasks = await getTasksByProjectId(Number(resolvedParams.id));
   const projectDetails = await getProjectDetails(Number(resolvedParams.id));
-
+  const looms = await getLoomsByProjectId(Number(resolvedParams.id));
+  // console.log({looms});
   if (!projectDetails) {
     return <div>Project not found</div>;
   }
-
-  console.log(projectDetails);
 
   const { project, clients } = projectDetails;
 
@@ -75,7 +75,7 @@ export default async function Dashboard({ params, searchParams }: Props) {
                   <>
                     <SnapshotSummary />
                     <TasksSection tasks={tasks} />
-                    <DeliverablesFeed />
+                    <DeliverablesFeed tasks={tasks} />
                     {/* <MeetingsSummary />
                     <SlackActivity /> */}
                   </>
