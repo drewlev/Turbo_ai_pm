@@ -4,26 +4,24 @@ import { TaskWithAssigneesType } from "@/app/actions/tasks";
 import { transformTasksForUI } from "@/app/types/task";
 import { TaskTableClient } from "@/components/tasks/task-table-client";
 import { KanbanBoard } from "@/components/kanban-board";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { List, LayoutGrid } from "lucide-react";
-import { getActiveProjects } from "@/app/actions/projects";
-import { getAvailableAssignees } from "@/app/actions/tasks";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 export async function TasksSection({
   tasks,
+  title,
 }: {
   tasks: TaskWithAssigneesType[];
+  title?: string;
 }) {
   const transformedTasks = transformTasksForUI(tasks);
   console.log({ transformedTasks });
 
-  const availableAssignees = await getAvailableAssignees();
   return (
     <section className="mb-8">
       <div className="flex justify-between items-center mb-4">
         <Tabs defaultValue="list" className="w-full">
           <div className="flex items-center gap-2 justify-between">
             <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-              Tasks
+              {title || "Tasks"}
             </h2>
             {/* <TabsList className="bg-[var(--background-dark)]">
               <TabsTrigger
@@ -46,7 +44,7 @@ export async function TasksSection({
               tasks={transformedTasks}
               title="All Tasks"
               count={tasks.length}
-              availableAssignees={availableAssignees}
+              // availableAssignees={availableAssignees}
             />
           </TabsContent>
 

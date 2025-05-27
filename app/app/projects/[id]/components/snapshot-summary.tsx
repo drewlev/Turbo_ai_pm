@@ -1,10 +1,8 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Circle, MessageSquare, Check, ArrowRight, Bot } from "lucide-react";
-import Link from "next/link";
-import type { ReactNode } from "react";
+import { Circle } from "lucide-react";
+// import type { ReactNode } from "react";
 
 export function SnapshotSummary() {
   return (
@@ -78,24 +76,24 @@ export function SnapshotSummary() {
 }
 
 // Component for rendering a label/content row
-type SnapshotRowProps = {
-  label: string;
-  children: ReactNode;
-  className?: string;
-};
+// type SnapshotRowProps = {
+//   label: string;
+//   children: ReactNode;
+//   className?: string;
+// };
 
-function SnapshotRow({
-  label,
-  children,
-  className = "mb-4",
-}: SnapshotRowProps) {
-  return (
-    <div className={`flex items-center ${className}`}>
-      <div className="w-36 text-xs text-[#6e6a68]">{label}</div>
-      <div className="flex-1">{children}</div>
-    </div>
-  );
-}
+// function SnapshotRow({
+//   label,
+//   children,
+//   className = "mb-4",
+// }: SnapshotRowProps) {
+//   return (
+//     <div className={`flex items-center ${className}`}>
+//       <div className="w-36 text-xs text-[#6e6a68]">{label}</div>
+//       <div className="flex-1">{children}</div>
+//     </div>
+//   );
+// }
 
 const ProjectUpdateCard = ({
   title,

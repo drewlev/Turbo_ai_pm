@@ -17,8 +17,8 @@ import { createProject, revalidateProjectPaths } from "@/app/actions/projects";
 import { clientSchema, projectFormSchema } from "@/app/schemas/project";
 import type { ClientData, ProjectFormData } from "@/app/schemas/project";
 
-const linkedinRegex =
-  /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/;
+// const linkedinRegex =
+//   /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/;
 
 export default function ProjectModal({
   open,

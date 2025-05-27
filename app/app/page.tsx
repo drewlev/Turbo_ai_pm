@@ -4,20 +4,14 @@ import { LayoutGrid, List } from "lucide-react";
 import { TaskTableClient } from "@/components/tasks/task-table-client";
 import { KanbanBoard } from "@/components/kanban-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAvailableAssignees, getTasks } from "@/app/actions/tasks";
+import { getTasks } from "@/app/actions/tasks";
 import { transformTasksForUI } from "@/app/types/task";
-import { getActiveProjects } from "@/app/actions/projects";
 
 export default async function TaskManagementApp() {
   const tasks = await getTasks();
   const transformedTasks = transformTasksForUI(tasks);
-  const activeProjects = await getActiveProjects();
-  const availableAssignees = await getAvailableAssignees();
-  const projects = activeProjects.map((project) => ({
-    id: project.id,
-    title: project.name,
-    url: project.id.toString(),
-  }));
+  // const availableAssignees = await getAvailableAssignees();
+
 
   return (
     <Tabs defaultValue="table" className="w-full gap-0">
@@ -60,7 +54,7 @@ export default async function TaskManagementApp() {
             tasks={transformedTasks}
             title="Todo"
             count={tasks.length}
-            availableAssignees={availableAssignees}
+            // availableAssignees={availableAssignees}
           />
         </TabsContent>
         <TabsContent value="kanban">

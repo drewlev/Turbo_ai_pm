@@ -1,9 +1,7 @@
 "use server";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NewTask from "@/components/tasks/new-task";
-import { getAvailableAssignees } from "@/app/actions/tasks";
-import { UserPlus, HelpCircle, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -30,7 +28,6 @@ export async function AppSidebar() {
     id: project.id,
   }));
 
-  const availableAssignees = await getAvailableAssignees();
   const users = await getUsers();
   const listUsers = users.map((user) => ({
     title: user.name || user.email,
@@ -61,13 +58,10 @@ export async function AppSidebar() {
       <SidebarHeader className="border-b border-[#2c2d3c]">
         <div className="p-4 flex items-center justify-between">
           <h1 className="font-semibold text-white">Turbo</h1>
-          <Avatar className="h-6 w-6">
-            <AvatarImage src="/placeholder.svg?height=24&width=24" alt="User" />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
+          <UserButton />
         </div>
 
-        <NewTask availableAssignees={availableAssignees} />
+        <NewTask />
         <ClientSidebarMenu />
       </SidebarHeader>
 
@@ -90,15 +84,15 @@ export async function AppSidebar() {
             </SidebarMenuButton> */}
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton className="flex items-center gap-2 text-[#d2d3e0]">
-              <Link href="/app/settings" className="flex items-center gap-2">
+            <Link
+              href="/app/settings"
+              className="flex items-center gap-2 pointer-cursor"
+            >
+              <SidebarMenuButton className="flex items-center gap-2 text-[#d2d3e0]">
                 <Settings className="h-4 w-4" />
                 <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <UserButton />
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

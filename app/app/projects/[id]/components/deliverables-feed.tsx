@@ -1,7 +1,6 @@
 "use client";
 import type React from "react";
 import { Card } from "@/components/ui/card";
-import Image from "next/image";
 import { TaskWithAssigneesType } from "@/app/actions/tasks";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AddLoom } from "@/components/tasks/components/add-loom";
 
 function LoomEmbed({ url }: { url: string }) {
   const videoId = url.split("/share/")[1]?.split("?")[0];
@@ -75,6 +73,7 @@ export function DeliverablesFeed({
       }
     } catch (error) {
       toast.error("Failed to save transcript");
+      console.error(error);
     }
   };
 

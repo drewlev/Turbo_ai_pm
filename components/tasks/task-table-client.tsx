@@ -1,6 +1,5 @@
 "use client";
 
-import TaskModal from "@/components/tasks/task-dialog";
 import {
   flexRender,
   getCoreRowModel,
@@ -28,6 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useRouter } from "next/navigation";
 
 const columns: ColumnDef<TaskTableTask>[] = [
   // {
@@ -111,18 +111,17 @@ interface TaskTableClientProps {
   tasks: TaskTableTask[];
   title: string;
   count: number;
-  availableAssignees: any[];
+  // availableAssignees: any[];
 }
 
 export function TaskTableClient({
   tasks,
   title,
   count,
-  availableAssignees,
+  // availableAssignees,
 }: TaskTableClientProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [selectedTask, setSelectedTask] = useState<TaskTableTask | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const router = useRouter();
   const table = useReactTable({
     data: tasks,
     columns,
@@ -135,8 +134,7 @@ export function TaskTableClient({
   });
 
   const handleRowClick = (task: TaskTableTask) => {
-    setSelectedTask(task);
-    setDialogOpen(true);
+    router.push(`/app/task/${task.id}`);
   };
 
   return (
@@ -210,14 +208,6 @@ export function TaskTableClient({
           </TableBody>
         </Table>
       </div>
-      {selectedTask && (
-        <TaskModal
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          selectedTask={selectedTask}
-          availableAssignees={availableAssignees}
-        />
-      )}
     </div>
   );
 }

@@ -26,7 +26,7 @@ export const AssigneeButton = ({
   assigneeOptions,
   onValueChange,
   placeholder = "Assignee",
-  className = "h-8 text-xs bg-transparent border-[var(--border-dark)] text-[var(--text-primary)] hover:bg-[var(--background-light)] hover:text-white",
+  // className = "h-8 text-xs bg-transparent border-[var(--border-dark)] text-[var(--text-primary)] hover:bg-[var(--background-light)] hover:text-white",
 }: AssigneeButtonProps) => {
   return (
     <Combobox

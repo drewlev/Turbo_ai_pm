@@ -43,7 +43,6 @@ const REQUIRED_STEPS = [
 ];
 
 export function ProjectSetupProgress({
-  projectInfo,
   clients,
   onActivateProject,
   isPending,

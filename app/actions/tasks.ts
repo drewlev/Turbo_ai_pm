@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/app/db";
-import { tasks, taskAssignees, users, looms } from "@/app/db/schema";
+import { tasks, taskAssignees, users, looms, meetings } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -11,7 +11,10 @@ export type TaskWithAssigneesType = typeof tasks.$inferSelect & {
     user: typeof users.$inferSelect;
   })[];
   looms?: (typeof looms.$inferSelect)[];
+  meeting?: typeof meetings.$inferSelect | null;
 };
+
+export type TaskType = typeof tasks.$inferSelect;
 
 export type InsertTask = typeof tasks.$inferInsert & {
   assigneeID?: number[];
@@ -21,7 +24,7 @@ export type InsertTask = typeof tasks.$inferInsert & {
 export type TaskResponse = {
   success: boolean;
   taskId?: number;
-  task?: TaskWithAssigneesType;
+  task?: TaskType;
   assignedUsers?: (typeof taskAssignees.$inferSelect)[];
   message?: string;
   error?: string;
@@ -47,6 +50,29 @@ export async function getTasks(): Promise<TaskWithAssigneesType[]> {
   }
 }
 
+export async function getTaskById(
+  taskId: number
+): Promise<TaskWithAssigneesType | undefined> {
+  try {
+    const task = await db.query.tasks.findFirst({
+      where: eq(tasks.id, taskId),
+      with: {
+        taskAssignees: {
+          with: {
+            user: true,
+          },
+        },
+        looms: true,
+        meeting: true,
+      },
+    });
+    return task;
+  } catch (error) {
+    console.error(`Error fetching task ${taskId}:`, error);
+    throw new Error("Failed to fetch task");
+  }
+}
+
 export async function getTasksByProjectId(
   projectId: number
 ): Promise<TaskWithAssigneesType[]> {
@@ -60,6 +86,7 @@ export async function getTasksByProjectId(
           },
         },
         looms: true,
+        meeting: true,
       },
     });
   } catch (error) {
@@ -78,9 +105,7 @@ export async function getAvailableAssignees() {
 }
 
 // Task Mutations
-export async function createTask(
-  task: InsertTask
-): Promise<TaskWithAssigneesType> {
+export async function createTask(task: InsertTask): Promise<TaskType> {
   try {
     const [newTask] = await db
       .insert(tasks)
@@ -135,7 +160,7 @@ export async function updateTaskAssignees(
 export async function updateTask(
   taskId: number,
   taskData: Partial<InsertTask>
-): Promise<TaskWithAssigneesType | null> {
+): Promise<TaskType | null> {
   try {
     const { assigneeID, ...taskUpdateData } = taskData;
 

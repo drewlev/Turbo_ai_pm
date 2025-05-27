@@ -1,6 +1,5 @@
 "use server";
 
-import { useAuth } from "@clerk/nextjs";
 import FirefliesSettings from "@/app/app/settings/_components/fireflies-settings";
 import { getFirefliesWebhookUrl, hasFirefliesApiKey } from "@/app/actions/fireflies";
 
