@@ -38,8 +38,10 @@ function LoomEmbed({ url }: { url: string }) {
 
 export function DeliverablesFeed({
   tasks,
+  gridCols = 2,
 }: {
   tasks: TaskWithAssigneesType[];
+  gridCols?: 1 | 2 | 3 | 4;
 }) {
   const [selectedLoom, setSelectedLoom] = useState<{
     id: number;
@@ -73,22 +75,21 @@ export function DeliverablesFeed({
       }
     } catch (error) {
       toast.error("Failed to save transcript");
-      console.error(error);
     }
   };
 
   return (
     <section className="mb-8">
       <h2 className="text-xl font-semibold mb-4 text-[var(--text-primary)]">
-        Recent Deliverables
+        {gridCols === 1 ? "Loom Transcript" : "Recent Deliverables"}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className={`grid grid-cols-1 md:grid-cols-${gridCols} gap-4`}>
         {tasks.map((task) => {
           const loom = task.looms?.[0];
           if (!loom) return null;
 
-          console.log({loom});
+          console.log({ loom });
           return (
             <Dialog key={task.id}>
               <DialogTrigger asChild>

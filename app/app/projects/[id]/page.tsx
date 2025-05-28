@@ -1,7 +1,7 @@
 import { ProjectHeader } from "@/app/app/projects/[id]/components/project-header";
 // import { SnapshotSummary } from "@/app/app/projects/[id]/components/snapshot-summary";
 import { TasksSection } from "@/app/app/projects/[id]/components/task-section";
-import { DeliverablesFeed } from "@/app/app/projects/[id]/components/deliverables-feed";
+import { DeliverablesFeed } from "@/components/deliverables-feed";
 import {
   getTasksByProjectId,
   TaskWithAssigneesType,

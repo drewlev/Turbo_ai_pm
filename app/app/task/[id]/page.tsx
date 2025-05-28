@@ -3,11 +3,31 @@
 import { getTaskById, getAvailableAssignees } from "@/app/actions/tasks";
 import { getActiveProjects } from "@/app/actions/projects";
 import { TaskForm } from "./task-form";
+import { DeliverablesFeed } from "@/components/deliverables-feed";
 
 interface PageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+function LoomEmbed({ url }: { url: string }) {
+  const videoId = url.split("/share/")[1]?.split("?")[0];
+
+  if (!videoId) {
+    return <div>Invalid Loom URL</div>;
+  }
+
+  const embedUrl = `https://www.loom.com/embed/${videoId}`;
+  const iframeCode = `<iframe src="${embedUrl}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>`;
+
+  return (
+    <div
+      style={{ position: "relative", width: "100%", paddingBottom: "56.25%" }}
+    >
+      <div dangerouslySetInnerHTML={{ __html: iframeCode }} />
+    </div>
+  );
 }
 
 export default async function TaskPage({ params }: PageProps) {
@@ -60,6 +80,9 @@ export default async function TaskPage({ params }: PageProps) {
           assigneeOptions={assigneeOptions}
           isNewTask={isNewTask}
         />
+      </div>
+      <div className="w-1/2 mx-auto mt-10">
+        <DeliverablesFeed gridCols={1} tasks={task ? [task] : []} />
       </div>
     </div>
   );
