@@ -1,7 +1,7 @@
 "use server";
 import db from "@/app/db";
 import { users } from "@/app/db/schema";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { cache } from "react";
 
@@ -58,4 +58,36 @@ export async function updateUserOnboardedStatus(onboarded: boolean) {
       onboarded,
     },
   });
+}
+
+/**
+ * Update the user's onboarding status in Clerk metadata
+ */
+export async function updateUserOnboardingStatus(onboarded: boolean) {
+  try {
+    const user = await currentUser();
+    if (!user) {
+      throw new Error("No user found");
+    }
+
+    await (
+      await clerkClient()
+    ).users.updateUserMetadata(user.id, {
+      publicMetadata: {
+        ...user.publicMetadata,
+        onboarded,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[updateUserOnboardingStatus] Error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update onboarding status",
+    };
+  }
 }

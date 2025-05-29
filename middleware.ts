@@ -43,6 +43,12 @@ export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, req) => {
 
   const isOnboarded = sessionClaims?.metadata?.onboarded === true;
 
+  // Allow Slack callback to proceed regardless of onboarding status
+  if (pathname === "/app/slack-callback") {
+    console.log("Allowing Slack callback - proceeding with request");
+    return NextResponse.next();
+  }
+
   // If user is onboarded and trying to access onboarding page, redirect to app
   if (isOnboarded && pathname === "/user-onboarding") {
     console.log("User is onboarded, redirecting to app");

@@ -5,17 +5,74 @@ import { googleCalendar } from "@/app/db/schema";
 import { watchCalendar, stopWatchingCalendar } from "../google-calendar";
 import { publishQStashCron, publishQStashMessage } from "../schdule-reminder";
 import { clerkIdToSerialId } from "../users";
+import { currentUser } from "@clerk/nextjs/server";
 
 // ===== Onboarding Functions =====
+
+/**
+ * Check if a user has an active calendar connection
+ */
+async function checkCalendarConnectionStatus() {
+  const user = await currentUser();
+  if (!user) {
+    return { connected: false, error: "No user found" };
+  }
+
+  try {
+    const userId = await clerkIdToSerialId(user.id);
+    const existingWatch = await db.query.googleCalendar.findFirst({
+      where: eq(googleCalendar.userId, userId),
+    });
+
+    if (!existingWatch) {
+      return { connected: false, error: "No calendar connection found" };
+    }
+
+    // Check if the watch is expired
+    const now = new Date();
+    if (existingWatch.expiration < now) {
+      return { connected: false, error: "Calendar connection expired" };
+    }
+
+    return {
+      connected: true,
+      watchDetails: existingWatch,
+      expiresAt: existingWatch.expiration,
+    };
+  } catch (error) {
+    console.error("[checkCalendarConnectionStatus] Error:", error);
+    return { connected: false, error: "Failed to check calendar status" };
+  }
+}
 
 /**
  * Initial onboarding function to set up calendar watching for a new user
  * This should be called during user onboarding
  */
 async function onboardUserCalendar() {
-  console.log(`[onboardUserCalendar] Starting calendar onboarding for user `);
+  console.log(`[onboardUserCalendar] Starting calendar onboarding for user`);
 
   try {
+    const user = await currentUser();
+    if (!user) {
+      console.error("[onboardUserCalendar] No user found");
+      return { success: false, error: "No user found" };
+    }
+    const userId = await clerkIdToSerialId(user.id);
+
+    const existingWatch = await db.query.googleCalendar.findFirst({
+      where: eq(googleCalendar.userId, userId),
+    });
+
+    if (existingWatch) {
+      console.log(`[onboardUserCalendar] User already has a watch`);
+      return {
+        success: true,
+        watchDetails: existingWatch,
+        message: "Calendar already connected",
+      };
+    }
+
     // Create the initial watch
     const { watchRecord } = await watchCalendar();
 
@@ -23,15 +80,23 @@ async function onboardUserCalendar() {
     await scheduleCalendarWatchRenewal(watchRecord);
 
     console.log(
-      `[onboardUserCalendar] Successfully completed calendar onboarding for user `
+      `[onboardUserCalendar] Successfully completed calendar onboarding`
     );
-    return watchRecord;
+    return {
+      success: true,
+      watchDetails: watchRecord,
+      message: "Calendar connected successfully",
+    };
   } catch (error) {
     console.error(
       "[onboardUserCalendar] Error during calendar onboarding:",
       error
     );
-    throw error;
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to connect calendar",
+    };
   }
 }
 
@@ -205,4 +270,5 @@ export {
   onboardUserCalendar,
   checkAndRenewCalendarWatches,
   cleanupExpiredWatches,
+  checkCalendarConnectionStatus,
 };
