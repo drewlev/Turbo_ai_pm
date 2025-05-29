@@ -4,6 +4,7 @@ import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import db from "@/app/db";
 import { googleCalendar } from "@/app/db/schema";
 import { clerkIdToSerialId } from "@/app/actions/users";
+
 interface WatchCalendarResponse {
   kind: string;
   id: string;
@@ -21,12 +22,12 @@ interface WatchCalendarError {
   };
 }
 
-export async function getUserOauthAccessToken(channel_id: string, clerkId: string) {
+export async function getUserOauthAccessToken(
+  channel_id: string,
+  clerkId: string
+) {
   const client = await clerkClient();
-  const tokens = await client.users.getUserOauthAccessToken(
-    clerkId,
-    "google"
-  );
+  const tokens = await client.users.getUserOauthAccessToken(clerkId, "google");
 
   if (!tokens.data || tokens.data.length === 0) {
     console.error("[watchCalendar] No Google OAuth tokens found");
@@ -34,10 +35,13 @@ export async function getUserOauthAccessToken(channel_id: string, clerkId: strin
   }
 
   console.log(`[watchCalendar] Found ${tokens.data.length} OAuth tokens`);
-  return tokens
+  return tokens;
 }
 
-export async function watchCalendar(): Promise<WatchCalendarResponse> {
+export async function watchCalendar(): Promise<{
+  watchResponse: WatchCalendarResponse;
+  watchRecord: typeof googleCalendar.$inferSelect;
+}> {
   console.log("[watchCalendar] Starting calendar watch setup");
 
   // Get the current authenticated user from Clerk
@@ -136,18 +140,24 @@ export async function watchCalendar(): Promise<WatchCalendarResponse> {
   );
 
   const expiration = new Date(Number(watchResponse.expiration));
-  await db.insert(googleCalendar).values({
-    channelId,
-    syncToken: initialSyncToken,
-    userId: user,
-    resourceId: watchResponse.resourceId,
-    resourceUri: watchResponse.resourceUri,
-    expiration: expiration,
-    // accessToken,
-  });
+  const [watchRecord] = await db
+    .insert(googleCalendar)
+    .values({
+      channelId,
+      syncToken: initialSyncToken,
+      userId: user,
+      resourceId: watchResponse.resourceId,
+      resourceUri: watchResponse.resourceUri,
+      expiration: expiration,
+    })
+    .returning();
+
   console.log("[watchCalendar] Successfully updated user metadata");
 
-  return watchResponse;
+  return {
+    watchResponse,
+    watchRecord: watchRecord as typeof googleCalendar.$inferSelect,
+  };
 }
 
 export async function stopWatchingCalendar(

@@ -1,7 +1,9 @@
+"use server";
 import db from "@/app/db";
 import { users } from "@/app/db/schema";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
+import { cache } from "react";
 
 // used for assignee dropdown
 export async function getUsers() {
@@ -30,4 +32,30 @@ export async function clerkIdToSerialId(inputedClerkId?: string) {
   }
 
   return user.id;
+}
+
+export const isUserOnboarded = cache(async (): Promise<boolean> => {
+  const authData = await auth();
+  if (!authData?.userId) {
+    return false;
+  }
+
+  const user = await (await clerkClient()).users.getUser(authData.userId);
+  return user.publicMetadata.onboarded === true;
+});
+
+export async function updateUserOnboardedStatus(onboarded: boolean) {
+  const authData = await auth();
+  if (!authData?.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Update Clerk metadata
+  await (
+    await clerkClient()
+  ).users.updateUserMetadata(authData.userId, {
+    publicMetadata: {
+      onboarded,
+    },
+  });
 }

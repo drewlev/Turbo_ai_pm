@@ -3,6 +3,8 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
 
+import { currentUser } from "@clerk/nextjs/server";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -18,7 +20,7 @@ export const metadata = {
   description: "Task management application",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -35,12 +37,7 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          {/* <SidebarProvider> */}
-          {/* <AppSidebar /> */}
-          {/* <SidebarInset className="bg-[#181921] text-[#d2d3e0]"> */}
           {children}
-          {/* </SidebarInset> */}
-          {/* </SidebarProvider> */}
           <Toaster />
         </body>
       </html>

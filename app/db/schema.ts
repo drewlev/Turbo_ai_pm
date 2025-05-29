@@ -23,6 +23,8 @@ export const users = pgTable("users", {
   name: text("name"),
   email: text("email").notNull().unique(),
   role: text("role").notNull().default("designer"),
+  teamId: integer("team_id").references(() => teams.id),
+  onboarded: boolean("onboarded").notNull().default(false),
 });
 
 export const userSettings = pgTable("user_settings", {
@@ -50,9 +52,7 @@ export const slackInstallations = pgTable("slack_installations", {
   teamName: text("team_name").notNull(),
   botToken: text("bot_token").notNull(),
   installerUserId: text("installer_user_id").notNull(),
-  team: integer("team_id")
-    .notNull()
-    .references(() => teams.id),
+  team: integer("team_id").references(() => teams.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -273,7 +273,16 @@ export const userRelations = relations(users, ({ many, one }) => ({
     fields: [users.id],
     references: [userSettings.userId],
   }),
+  team: one(teams, {
+    fields: [users.teamId],
+    references: [teams.id],
+  }),
 }));
+
+export const teamRelations = relations(teams, ({ many }) => ({
+  users: many(users),
+}));
+
 
 export const userSettingsRelations = relations(userSettings, ({ one }) => ({
   user: one(users, {
@@ -483,4 +492,3 @@ export const clientRelations = relations(clients, ({ one }) => ({
     references: [projects.id],
   }),
 }));
-
