@@ -13,13 +13,18 @@ import {
 } from "@/app/actions/projects";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { ProjectDetails } from "@/app/types/project";
 
 interface User {
   id: number;
   name: string | null;
 }
 
-export function ProjectHeader() {
+export function ProjectHeader({
+  projectDetails,
+}: {
+  projectDetails: ProjectDetails;
+}) {
   const params = useParams();
   const projectId = parseInt(params.id as string);
 
@@ -104,15 +109,15 @@ export function ProjectHeader() {
     <header className="sticky top-0 z-10 bg-[var(--background-dark)] border-b border-[var(--border-dark)] shadow-sm">
       <div className="max-w-[1200px] mx-auto px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Image
+          {/* <Image
             className="rounded-sm"
             src="https://n1v74cls2c.ufs.sh/f/XAC5NGVjIxRTyIYbktgRkYIPZNFQpvTomWh6SO39DjtMaGlu"
             alt="Rally"
             width={32}
             height={32}
-          />
+          /> */}
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">
-            Rally
+            {projectDetails.project.name}
           </h1>
           <div className="flex items-center gap-2 text-[var(--text-secondary)]"></div>
         </div>

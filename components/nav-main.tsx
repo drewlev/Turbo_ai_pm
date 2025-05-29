@@ -45,21 +45,39 @@ export function NavMain({
               key={item.title}
               asChild
               defaultOpen={item.isActive}
-              className="group/collapsible"
+              className="group/collapsible" // This class is important for targeting
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title}>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    className="
+                      hover:bg-[var(--hover)] hover:text-white
+                      data-[state=open]:hover:bg-[var(--hover)] data-[state=open]:hover:text-white
+                      focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent
+                      active:bg-[var(--hover)] active:text-white
+                      tap-highlight-transparent
+                    "
+                  >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
-                <CollapsibleContent>
+                <CollapsibleContent
+                  className="
+                    overflow-hidden transition-all duration-300 ease-in-out
+                    data-[state=closed]:animate-slide-up
+                    data-[state=open]:animate-slide-down
+                  "
+                >
                   <SidebarMenuSub>
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild>
+                        <SidebarMenuSubButton
+                          asChild
+                          className="hover:bg-[var(--hover)] hover:text-white"
+                        >
                           <a href={subItem.url}>
                             <span>{subItem.title}</span>
                           </a>
@@ -70,7 +88,7 @@ export function NavMain({
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton
                           onClick={() => setIsProjectModalOpen(true)}
-                          className=" flex text-white"
+                          className=" flex text-white hover:bg-[var(--hover)] hover:text-white"
                         >
                           <span className="">
                             <Plus fill="currentColor" size={16} />

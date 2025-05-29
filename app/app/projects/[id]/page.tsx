@@ -63,7 +63,7 @@ export default async function Dashboard({ params, searchParams }: Props) {
         {/* Main Content */}
         <div className="flex-1">
           {/* Sticky Header */}
-          <ProjectHeader />
+          <ProjectHeader projectDetails={projectDetails} />
 
           {/* Main Content Area */}
           <main className="max-w-[1200px] mx-auto px-8">
@@ -92,7 +92,7 @@ export default async function Dashboard({ params, searchParams }: Props) {
       {/* Main Content */}
       <div className="flex-1">
         {/* Sticky Header */}
-        <ProjectHeader />
+        <ProjectHeader projectDetails={projectDetails} />
 
         {/* Main Content Area */}
         <main className="max-w-[1200px] mx-auto px-8">

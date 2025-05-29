@@ -52,10 +52,10 @@ export async function AppSidebar() {
 
   return (
     <Sidebar
-      className="border-r border-[#2c2d3c] bg-[#181921] text-[#d2d3e0]"
+      className="border-r border-[#2c2d3c] text-[#d2d3e0]"
       key={Date.now()}
     >
-      <SidebarHeader className="border-b border-[#2c2d3c]">
+      <SidebarHeader className="border-b border-[#2c2d3c] bg-[var(--background-dark)]">
         <div className="p-4 flex items-center justify-between">
           <h1 className="font-semibold text-white">Turbo</h1>
           <UserButton />
@@ -65,7 +65,7 @@ export async function AppSidebar() {
         <ClientSidebarMenu />
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="bg-[var(--background-dark)]">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -75,7 +75,7 @@ export async function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="bg-[var(--background-dark)]">
         <SidebarMenu>
           <SidebarMenuItem>
             {/* <SidebarMenuButton className="text-[#d2d3e0]">
