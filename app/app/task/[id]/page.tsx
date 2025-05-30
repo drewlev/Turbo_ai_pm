@@ -5,6 +5,7 @@ import { getActiveProjects } from "@/app/actions/projects";
 import { TaskForm } from "./task-form";
 import { DeliverablesFeed } from "@/components/deliverables-feed";
 import { getTeamId } from "@/app/actions/users";
+import { getUserContext } from "@/app/actions/users";
 
 interface PageProps {
   params: Promise<{
@@ -12,32 +13,15 @@ interface PageProps {
   }>;
 }
 
-// function LoomEmbed({ url }: { url: string }) {
-//   const videoId = url.split("/share/")[1]?.split("?")[0];
-
-//   if (!videoId) {
-//     return <div>Invalid Loom URL</div>;
-//   }
-
-//   const embedUrl = `https://www.loom.com/embed/${videoId}`;
-//   const iframeCode = `<iframe src="${embedUrl}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>`;
-
-//   return (
-//     <div
-//       style={{ position: "relative", width: "100%", paddingBottom: "56.25%" }}
-//     >
-//       <div dangerouslySetInnerHTML={{ __html: iframeCode }} />
-//     </div>
-//   );
-// }
-
+// ===== Page =====
 export default async function TaskPage({ params }: PageProps) {
   const resolvedParams = await params;
   const isNewTask = resolvedParams.id === "new";
   const task = isNewTask
     ? null
     : await getTaskById(parseInt(resolvedParams.id));
-  const projects = await getActiveProjects();
+  const { userId, role } = await getUserContext();
+  const projects = await getActiveProjects(userId, role);
   const teamId = await getTeamId();
   if (!teamId) {
     throw new Error("Team ID not found");

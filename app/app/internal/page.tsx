@@ -10,6 +10,27 @@ import { redirect } from "next/navigation";
 import { stopWatchingCalendar } from "@/app/actions/google-calendar";
 import { publishQStashCron } from "@/app/actions/schdule-reminder";
 import { toast } from "sonner";
+import { getTasksMissingLoomsForProject } from "@/app/actions/loom-tasks";
+
+// Assuming TaskWithAssigneeInfo is defined somewhere accessible,
+// perhaps in a shared types file or directly in loom-tasks.ts
+// For this component, we'll define a minimal type if not globally available.
+type TaskWithAssigneeInfo = {
+  id: number;
+  title: string;
+  description: string | null;
+  status: string | null;
+  priority: string | null;
+  dueDate: Date | null;
+  assignee: {
+    id: number;
+    name: string | null;
+    slackUser: {
+      slackUserId: string;
+      slackTeamId: string;
+    } | null;
+  } | null;
+};
 
 export default function InternalPage() {
   // State for Fireflies Transcript
@@ -38,6 +59,12 @@ export default function InternalPage() {
   const [qstashResourceId, setQstashResourceId] = useState("test");
   const [qstashUserId, setQstashUserId] = useState("1");
   const [qstashCallbackUrl, setQstashCallbackUrl] = useState("/test");
+
+  // State for Loom Tasks
+  const [loomTasksProjectId, setLoomTasksProjectId] = useState("1");
+  const [tasksMissingLooms, setTasksMissingLooms] = useState<
+    TaskWithAssigneeInfo[]
+  >([]);
 
   const handleFirefliesFetch = async () => {
     try {
@@ -93,6 +120,22 @@ export default function InternalPage() {
     }
   };
 
+  const handleGetTasksMissingLooms = async () => {
+    try {
+      const projectId = parseInt(loomTasksProjectId);
+      if (isNaN(projectId)) {
+        toast.error("Please enter a valid Project ID (number).");
+        return;
+      }
+      const tasks = await getTasksMissingLoomsForProject(projectId);
+      setTasksMissingLooms(tasks);
+      toast.success(`Found ${tasks.length} tasks missing Looms.`);
+    } catch (error) {
+      console.error("Error fetching tasks missing Looms:", error);
+      toast.error("Failed to fetch tasks missing Looms.");
+    }
+  };
+
   return (
     <div className="p-6 space-y-8 bg-[var(--background)] text-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold text-center mb-10">
@@ -100,8 +143,6 @@ export default function InternalPage() {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {" "}
-        {/* Added grid layout */}
         {/* Fireflies Transcript Section */}
         <div className="border border-gray-700 rounded-lg p-6 space-y-4 bg-gray-800">
           <h2 className="text-xl font-semibold text-turbo-blue">
@@ -371,6 +412,78 @@ export default function InternalPage() {
           >
             Schedule QStash Cron
           </Button>
+        </div>
+
+        {/* --- */}
+
+        {/* Tasks Missing Looms Section (NEW) */}
+        <div className="border border-gray-700 rounded-lg p-6 space-y-4 bg-gray-800 col-span-1 md:col-span-2">
+          <h2 className="text-xl font-semibold text-turbo-blue">
+            Tasks Missing Looms
+          </h2>
+          <div>
+            <Label
+              htmlFor="loomTasksProjectId"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Project ID
+            </Label>
+            <Input
+              id="loomTasksProjectId"
+              type="number"
+              value={loomTasksProjectId}
+              onChange={(e) => setLoomTasksProjectId(e.target.value)}
+              placeholder="e.g., 1"
+              className="w-full bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+            />
+          </div>
+          <Button
+            onClick={handleGetTasksMissingLooms}
+            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+          >
+            Get Tasks Missing Looms
+          </Button>
+
+          {tasksMissingLooms.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-medium text-gray-300 mb-3">
+                Results:
+              </h3>
+              <ul className="space-y-2">
+                {tasksMissingLooms.map((task) => (
+                  <li key={task.id} className="bg-gray-700 p-3 rounded-md">
+                    <p className="text-base font-semibold text-white">
+                      {task.title}
+                    </p>
+                    {task.description && (
+                      <p className="text-sm text-gray-300">
+                        {task.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-1">
+                      Status: {task.status || "N/A"} | Priority:{" "}
+                      {task.priority || "N/A"} | Due:{" "}
+                      {task.dueDate
+                        ? new Date(task.dueDate).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                    {task.assignee && (
+                      <p className="text-xs text-gray-400">
+                        Assignee: {task.assignee.name || "N/A"} (Slack ID:{" "}
+                        {task.assignee.slackUser?.slackUserId || "N/A"})
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {tasksMissingLooms.length === 0 &&
+            loomTasksProjectId !== "1" && ( // Only show if a search was performed and no results
+              <p className="text-gray-400 mt-4">
+                No tasks missing Looms found for this project.
+              </p>
+            )}
         </div>
       </div>
     </div>

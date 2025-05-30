@@ -1,21 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { identifyProjectByEvent } from "@/app/actions/automations/automessage";
-export async function POST(request: NextRequest) {
-  const requestUrl = request.url;
-  const requestMethod = request.method;
+import { handleCalendarEventNotification } from "@/app/actions/automations/automessage";
 
+export async function POST(request: NextRequest) {
   try {
-    const requestBody = await request.json(); // Assuming the body is JSON
-    console.log("URL:", requestUrl);
-    console.log("Method:", requestMethod);
-    console.log("Body (parsed JSON):", requestBody);
-    await identifyProjectByEvent(requestBody.eventId);
+    const requestBody = await request.json();
+
+    if (!requestBody.eventId) {
+      return NextResponse.json(
+        { error: "Missing required field: eventId" },
+        { status: 400 }
+      );
+    }
+
+    await handleCalendarEventNotification(requestBody.eventId);
 
     return NextResponse.json({
-      message: "message received",
-      body: requestBody,
+      success: true,
+      message: "Calendar event notification processed successfully",
+      eventId: requestBody.eventId,
     });
   } catch (error) {
-    console.error("Error parsing request body:", error);
+    console.error("[QStash Webhook] Error processing request:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to process calendar event notification",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
