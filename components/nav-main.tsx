@@ -76,7 +76,12 @@ export function NavMain({
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton
                           asChild
-                          className="hover:bg-[var(--hover)] hover:text-white"
+                          className="hover:bg-[var(--hover)] hover:text-white
+                          hover:bg-[var(--hover)] hover:text-white
+                          data-[state=open]:hover:bg-[var(--hover)] data-[state=open]:hover:text-white
+                          focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent
+                          active:bg-[var(--hover)] active:text-white
+                          tap-highlight-transparent"
                         >
                           <a href={subItem.url}>
                             <span>{subItem.title}</span>
@@ -88,7 +93,13 @@ export function NavMain({
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton
                           onClick={() => setIsProjectModalOpen(true)}
-                          className=" flex text-white hover:bg-[var(--hover)] hover:text-white"
+                          className=" flex text-white hover:bg-[var(--hover)] hover:text-white
+                          hover:bg-[var(--hover)] hover:text-white
+                          data-[state=open]:hover:bg-[var(--hover)] data-[state=open]:hover:text-white
+                          focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent
+                          active:bg-[var(--hover)] active:text-white
+                          tap-highlight-transparent
+                          "
                         >
                           <span className="">
                             <Plus fill="currentColor" size={16} />
