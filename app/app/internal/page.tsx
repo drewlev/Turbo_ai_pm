@@ -31,7 +31,7 @@ export default function InternalPage() {
       </Button>
       <Button
         onClick={async () => {
-          await sendMessageToSlack("Hello, world!", 12);
+          await sendMessageToSlack("Hello, world!", 17);
         }}
       >
         Send Message to Slack
