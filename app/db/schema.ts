@@ -77,44 +77,49 @@ export const googleCalendar = pgTable("google_calendar", {
   resourceId: text("resource_id").notNull(),
   resourceUri: text("resource_uri").notNull(),
   expiration: timestamp("expiration").notNull(),
-  // accessToken: text("access_token").notNull(), // new
-  syncToken: text("sync_token"), // new
+  syncToken: text("sync_token"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const calendarEventKeywords = pgTable("calendar_event_keywords", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
-  keyword: text("keyword").notNull(),
-},
+export const calendarEventKeywords = pgTable(
+  "calendar_event_keywords",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .references(() => users.id)
+      .notNull(),
+    keyword: text("keyword").notNull(),
+  },
   (table) => [unique("user_id_idx").on(table.userId, table.keyword)]
 );
 
 export const calendarEvents = pgTable("calendar_events", {
-  id: text("id").primaryKey(), // '7ni1ktubh5s95dc86g2rer71d3'
-  kind: text("kind"), // 'calendar#event'
-  etag: text("etag"), // '"3494307509621470"'
-  status: text("status"), // 'confirmed'
-  htmlLink: text("html_link"), // full URL
-  created: timestamp("created", { withTimezone: true }), // '2025-03-27T16:10:40.000Z'
-  updated: timestamp("updated", { withTimezone: true }), // '2025-05-13T16:29:14.810Z'
-  summary: text("summary"), // 'Drew | Protocoding Weekly'
-  iCalUID: text("ical_uid"), // '7ni1ktubh5s95dc86g2rer71d3@google.com'
-  sequence: integer("sequence"), // 2
-  hangoutLink: text("hangout_link"), // Google Meet link
-  eventType: text("event_type"), // 'default'
-  qstashMessageId: text("qstash_message_id"), // ID of the scheduled reminder in QStash
-
-  // JSON fields
-  creator: jsonb("creator"), // name, email, etc.
+  id: text("id").primaryKey(),
+  kind: text("kind"),
+  etag: text("etag"),
+  status: text("status"),
+  htmlLink: text("html_link"),
+  created: timestamp("created"),
+  updated: timestamp("updated"),
+  summary: text("summary"),
+  creator: jsonb("creator"),
   organizer: jsonb("organizer"),
   start: jsonb("start"),
   end: jsonb("end"),
   recurrence: jsonb("recurrence"),
-  attendees: jsonb("attendees"),
-  conferenceData: jsonb("conference_data"),
+  transparency: text("transparency"),
+  visibility: text("visibility"),
+  iCalUID: text("ical_uid"),
+  sequence: integer("sequence"),
   reminders: jsonb("reminders"),
+  birthdayProperties: jsonb("birthday_properties"),
+  eventType: text("event_type"),
+  attendees: jsonb("attendees"),
+  hangoutLink: text("hangout_link"),
+  conferenceData: jsonb("conference_data"),
+  qstashMessageId: text("qstash_message_id"),
+  resourceId: text("resource_id").notNull(),
 });
 
 export const projects = pgTable("projects", {
@@ -485,12 +490,15 @@ export const googleCalendarRelations = relations(googleCalendar, ({ one }) => ({
   }),
 }));
 
-export const calendarEventKeywordRelations = relations(calendarEventKeywords, ({ one }) => ({
-  user: one(users, {
-    fields: [calendarEventKeywords.userId],
-    references: [users.id],
-  }),
-}));
+export const calendarEventKeywordRelations = relations(
+  calendarEventKeywords,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [calendarEventKeywords.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const slackUserRelations = relations(slackUsers, ({ one }) => ({
   slackInstallation: one(slackInstallations, {

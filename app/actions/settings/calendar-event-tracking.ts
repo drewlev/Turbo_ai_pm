@@ -2,11 +2,34 @@
 
 "use server";
 import db from "@/app/db";
-import { calendarEventKeywords } from "@/app/db/schema"; // Your schema with unique(userId, keyword)
+import { calendarEventKeywords, googleCalendar } from "@/app/db/schema"; // Your schema with unique(userId, keyword)
 import { eq, inArray, and } from "drizzle-orm"; // Need 'and' for combining conditions
 import { auth } from "@clerk/nextjs/server";
 import { clerkIdToSerialId } from "../users";
 
+// For webhook/background contexts where we have channelId
+export async function getTrackingKeywordsByResourceId(resourceId: string) {
+  // find user usering resourceId
+  const calendarRecord = await db.query.googleCalendar.findFirst({
+    where: eq(googleCalendar.resourceId, resourceId),
+    with: {
+      user: true,
+    },
+  });
+
+  if (!calendarRecord?.user?.id) throw new Error("User not found");
+
+  const userId = calendarRecord.user.id;
+
+  const result = await db
+    .select({ keyword: calendarEventKeywords.keyword })
+    .from(calendarEventKeywords)
+    .where(eq(calendarEventKeywords.userId, userId));
+
+  return result.map((rec) => rec.keyword);
+}
+
+// For authenticated user contexts (settings page)
 export async function saveTrackingKeywords(keywords: string[]) {
   const { userId: clerkId } = await auth();
   if (!clerkId) throw new Error("Not authenticated");
@@ -14,7 +37,7 @@ export async function saveTrackingKeywords(keywords: string[]) {
   const userId = await clerkIdToSerialId(clerkId);
   if (!userId) throw new Error("User not found");
 
-  await db.transaction(async (tx) => { // Use a transaction for atomicity
+  await db.transaction(async (tx) => {
     // 1. Get existing keywords for this user
     const existingKeywordRecords = await tx
       .select({ keyword: calendarEventKeywords.keyword })
@@ -24,11 +47,9 @@ export async function saveTrackingKeywords(keywords: string[]) {
     const existingKeywords = existingKeywordRecords.map((rec) => rec.keyword);
 
     // 2. Determine keywords to delete and keywords to add
-    // Keywords that are currently in the DB but NOT in the new 'keywords' array
     const keywordsToDelete = existingKeywords.filter(
       (existingK) => !keywords.includes(existingK)
     );
-    // Keywords that are in the new 'keywords' array but NOT currently in the DB
     const keywordsToAdd = keywords.filter(
       (newK) => !existingKeywords.includes(newK)
     );
@@ -38,7 +59,7 @@ export async function saveTrackingKeywords(keywords: string[]) {
       await tx
         .delete(calendarEventKeywords)
         .where(
-          and( // Use 'and' to combine conditions
+          and(
             eq(calendarEventKeywords.userId, userId),
             inArray(calendarEventKeywords.keyword, keywordsToDelete)
           )
@@ -51,13 +72,15 @@ export async function saveTrackingKeywords(keywords: string[]) {
         userId: userId,
         keyword: k,
       }));
-      // Use onConflictDoNothing because of the unique(userId, keyword) constraint
-      // If a keyword somehow already exists (e.g., race condition), just skip it.
-      await tx.insert(calendarEventKeywords).values(valuesToInsert).onConflictDoNothing();
+      await tx
+        .insert(calendarEventKeywords)
+        .values(valuesToInsert)
+        .onConflictDoNothing();
     }
   });
 }
 
+// For authenticated user contexts (settings page)
 export async function getTrackingKeywords() {
   const { userId: clerkId } = await auth();
   if (!clerkId) throw new Error("Not authenticated");
@@ -66,10 +89,9 @@ export async function getTrackingKeywords() {
   if (!userId) throw new Error("User not found");
 
   const result = await db
-    .select({ keyword: calendarEventKeywords.keyword }) // Select only the 'keyword' column
+    .select({ keyword: calendarEventKeywords.keyword })
     .from(calendarEventKeywords)
     .where(eq(calendarEventKeywords.userId, userId));
 
-  // No need to split, as each row is already a single keyword
   return result.map((rec) => rec.keyword);
 }

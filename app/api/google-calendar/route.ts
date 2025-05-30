@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
     console.log(`[webhook] User found: ${record}`);
 
-    await channelToStoreCalendarEvent(channelId);
+    await channelToStoreCalendarEvent(channelId, resourceId);
 
     return NextResponse.json({ message: "Processed successfully" });
   } catch (error: any) {
