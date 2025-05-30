@@ -111,7 +111,7 @@ export async function getTeamId() {
   if (!authData) {
     throw new Error("Unauthorized");
   }
-  const clerkId = authData.userId;  
+  const clerkId = authData.userId;
 
   if (!clerkId) {
     throw new Error("Unauthorized");
@@ -122,4 +122,38 @@ export async function getTeamId() {
   });
 
   return teamId?.teamId;
+}
+
+export type UserContext = {
+  userId: number;
+  clerkId: string;
+  role: string;
+  teamId: number | null;
+};
+
+export async function getUserContext(clerkId?: string): Promise<UserContext> {
+  // If no clerkId provided, get it from auth
+  if (!clerkId) {
+    const authData = await auth();
+    if (!authData?.userId) {
+      throw new Error("Unauthorized");
+    }
+    clerkId = authData.userId;
+  }
+
+  // Get user data from database
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return {
+    userId: user.id,
+    clerkId: user.clerkId,
+    role: user.role,
+    teamId: user.teamId,
+  };
 }

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import NewTask from "@/components/tasks/new-task";
 import { Settings } from "lucide-react";
+import { commonStyles } from "@/styles/common";
 import {
   Sidebar,
   SidebarContent,
@@ -17,12 +18,16 @@ import {
 import { UserButton } from "@clerk/nextjs";
 import { NavMain } from "@/components/nav-main";
 import { getActiveProjects } from "@/app/actions/projects";
-import { getUsers } from "@/app/actions/users";
+import { getUserContext, getUsers } from "@/app/actions/users";
 import { ClientSidebarMenu } from "./client-sidebar";
 
 export async function AppSidebar() {
-  const projects = await getActiveProjects();
-  const listProjects = projects.map((project) => ({
+  const userContext = await getUserContext();
+  const projects = await getActiveProjects(
+    userContext.userId,
+    userContext.role
+  );
+  const listProjects = (projects || []).map((project) => ({
     title: project.name,
     url: `/app/projects/${project.id}`,
     id: project.id,
@@ -35,27 +40,40 @@ export async function AppSidebar() {
     id: user.id,
   }));
 
-  const data = {
-    navMain: [
-      {
-        title: "Projects",
-        url: "#",
-        items: listProjects,
-      },
-      {
-        title: "Team",
-        url: "#",
-        items: listUsers,
-      },
-    ],
+  const navData = {
+    owner: {
+      navMain: [
+        {
+          title: "Projects",
+          url: "#",
+          items: listProjects,
+        },
+        {
+          title: "Team",
+          url: "#",
+          items: listUsers,
+        },
+      ],
+      allowCreateProject: true,
+    },
+    designer: {
+      navMain: [
+        {
+          title: "Projects",
+          url: "#",
+          items: listProjects,
+        },
+      ],
+      allowCreateProject: false,
+    },
   };
 
+  const data =
+    navData[userContext.role as keyof typeof navData] || navData.designer;
+
   return (
-    <Sidebar
-      className="border-r border-[#2c2d3c] text-[#d2d3e0]"
-      key={Date.now()}
-    >
-      <SidebarHeader className="border-b border-[#2c2d3c] bg-[var(--background-dark)]">
+    <Sidebar className={commonStyles.sidebar.container} key={Date.now()}>
+      <SidebarHeader className={commonStyles.sidebar.header}>
         <div className="p-4 flex items-center justify-between">
           <h1 className="font-semibold text-white">Turbo</h1>
           <UserButton />
@@ -65,7 +83,7 @@ export async function AppSidebar() {
         <ClientSidebarMenu />
       </SidebarHeader>
 
-      <SidebarContent className="bg-[var(--background-dark)]">
+      <SidebarContent className={commonStyles.sidebar.content}>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -75,20 +93,14 @@ export async function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="bg-[var(--background-dark)]">
+      <SidebarFooter className={commonStyles.sidebar.footer}>
         <SidebarMenu>
-          <SidebarMenuItem>
-            {/* <SidebarMenuButton className="text-[#d2d3e0]">
-              <UserPlus className="h-4 w-4" />
-              <span>Invite people</span>
-            </SidebarMenuButton> */}
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <Link
               href="/app/settings"
               className="flex items-center gap-2 pointer-cursor"
             >
-              <SidebarMenuButton className="flex items-center gap-2 text-[#d2d3e0]">
+              <SidebarMenuButton className={commonStyles.nav.button}>
                 <Settings className="h-4 w-4" />
                 <span>Settings</span>
               </SidebarMenuButton>

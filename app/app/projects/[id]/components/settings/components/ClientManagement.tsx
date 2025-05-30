@@ -157,7 +157,7 @@ export function ClientManagement({
                     type="button"
                     variant="outline"
                     onClick={handleClose}
-                    className="border-[var(--border-dark)]"
+                    className=""
                   >
                     Cancel
                   </Button>

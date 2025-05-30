@@ -2,7 +2,7 @@
 
 import db from "@/app/db";
 import { tasks, taskAssignees, users, looms, meetings } from "@/app/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 // Types
@@ -31,8 +31,11 @@ export type TaskResponse = {
 };
 
 // Task Queries
-export async function getTasks(): Promise<TaskWithAssigneesType[]> {
-  try {
+export async function getTasks(
+  userId: number,
+  userRole: string
+): Promise<TaskWithAssigneesType[]> {
+  if (userRole === "owner") {
     return await db.query.tasks.findMany({
       with: {
         taskAssignees: {
@@ -44,10 +47,39 @@ export async function getTasks(): Promise<TaskWithAssigneesType[]> {
         looms: true,
       },
     });
-  } catch (error) {
-    console.error("Error fetching tasks:", error);
-    throw new Error("Failed to fetch tasks");
   }
+
+  if (userRole === "designer") {
+    // Find all task IDs assigned to the specific user
+    const assignedTaskIds = await db.query.taskAssignees
+      .findMany({
+        where: eq(taskAssignees.userId, userId),
+        columns: {
+          taskId: true, // Select only the taskId
+        },
+      })
+      .then((assignees) => assignees.map((assignee) => assignee.taskId));
+
+    if (assignedTaskIds.length === 0) {
+      return []; // If the designer isn't assigned to any tasks, return an empty array
+    }
+
+    // Now, fetch tasks where their ID is in the list of assignedTaskIds
+    return await db.query.tasks.findMany({
+      where: inArray(tasks.id, assignedTaskIds),
+      with: {
+        taskAssignees: {
+          with: {
+            user: true,
+          },
+        },
+        project: true,
+        looms: true,
+      },
+    });
+  }
+
+  return [];
 }
 
 export async function getTaskById(

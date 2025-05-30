@@ -563,6 +563,10 @@ export default function ProjectNetworkDashboard() {
           <Background />
           <Controls />
           <MiniMap
+            style={{
+              backgroundColor: "var(--background-dark)",
+              border: "1px solid var(--border-dark)",
+            }}
             nodeColor={(node) => {
               if (node.type === "designer") return "#dbeafe";
               if (node.type === "project") return "#dcfce7";

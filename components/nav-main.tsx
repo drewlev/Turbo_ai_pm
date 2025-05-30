@@ -3,6 +3,7 @@
 import { ChevronRight, type LucideIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import ProjectModal from "./project-dialog";
+import { commonStyles } from "@/styles/common";
 
 import {
   Collapsible,
@@ -31,6 +32,7 @@ export function NavMain({
       title: string;
       url: string;
     }[];
+    allowCreateProject?: boolean;
   }[];
 }) {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -51,13 +53,7 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    className="
-                      hover:bg-[var(--hover)] hover:text-white
-                      data-[state=open]:hover:bg-[var(--hover)] data-[state=open]:hover:text-white
-                      focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent
-                      active:bg-[var(--hover)] active:text-white
-                      tap-highlight-transparent
-                    "
+                    className={commonStyles.nav.button}
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -76,12 +72,7 @@ export function NavMain({
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton
                           asChild
-                          className="hover:bg-[var(--hover)] hover:text-white
-                          hover:bg-[var(--hover)] hover:text-white
-                          data-[state=open]:hover:bg-[var(--hover)] data-[state=open]:hover:text-white
-                          focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent
-                          active:bg-[var(--hover)] active:text-white
-                          tap-highlight-transparent"
+                          className={commonStyles.nav.subButton}
                         >
                           <a href={subItem.url}>
                             <span>{subItem.title}</span>
@@ -91,21 +82,17 @@ export function NavMain({
                     ))}
                     {item.title === "Projects" && (
                       <SidebarMenuSubItem>
+                        {item.allowCreateProject && (
                         <SidebarMenuSubButton
                           onClick={() => setIsProjectModalOpen(true)}
-                          className=" flex text-white hover:bg-[var(--hover)] hover:text-white
-                          hover:bg-[var(--hover)] hover:text-white
-                          data-[state=open]:hover:bg-[var(--hover)] data-[state=open]:hover:text-white
-                          focus:outline-none focus:ring-2 focus:ring-transparent focus:border-transparent
-                          active:bg-[var(--hover)] active:text-white
-                          tap-highlight-transparent
-                          "
+                          className={`flex ${commonStyles.nav.subButton}`}
                         >
-                          <span className="">
+                          <span>
                             <Plus fill="currentColor" size={16} />
                           </span>
-                          <span>Create New</span>
-                        </SidebarMenuSubButton>
+                            <span>Create New</span>
+                          </SidebarMenuSubButton>
+                        )}
                       </SidebarMenuSubItem>
                     )}
                   </SidebarMenuSub>

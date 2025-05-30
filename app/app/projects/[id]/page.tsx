@@ -8,7 +8,9 @@ import {
 } from "@/app/actions/tasks";
 import Frame from "@/components/vercel-tabs";
 import { SettingsSection } from "@/app/app/projects/[id]/components/settings/setting";
-import { getProjectDetails } from "@/app/actions/projects";
+import { getProjectDetails, hasProjectAccess } from "@/app/actions/projects";
+import { getUserContext } from "@/app/actions/users";
+import { NoAccess } from "./components/no-access";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -17,8 +19,28 @@ type Props = {
 
 export default async function Dashboard({ params, searchParams }: Props) {
   const [resolvedParams] = await Promise.all([params, searchParams]);
-  const tasks = await getTasksByProjectId(Number(resolvedParams.id));
-  const projectDetails = await getProjectDetails(Number(resolvedParams.id));
+  const projectId = Number(resolvedParams.id);
+
+  // Get user context and check access
+  const userContext = await getUserContext();
+  const hasAccess = await hasProjectAccess(
+    userContext.userId,
+    userContext.role,
+    projectId
+  );
+
+  if (!hasAccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--background-dark)]">
+        <div className="text-center">
+          <NoAccess />
+        </div>
+      </div>
+    );
+  }
+
+  const tasks = await getTasksByProjectId(projectId);
+  const projectDetails = await getProjectDetails(projectId);
   const TaskByMeeting = () => {
     // Group tasks by meeting
     const tasksByMeeting = tasks.reduce((acc, task) => {

@@ -13,12 +13,47 @@ import { revalidatePath } from "next/cache";
 import { generateProjectSlug } from "@/app/schemas/project";
 import type { ProjectFormData, ProjectUpdateData } from "@/app/schemas/project";
 
-export async function getActiveProjects() {
-  const activeProjects = await db.query.projects.findMany({
-    where: or(eq(projects.status, "active"), eq(projects.status, "pending")),
-  });
+export async function getActiveProjects(userId: number, userRole: string) {
+  try {
+    if (userRole === "owner") {
+      return await db.query.projects.findMany({
+        where: or(
+          eq(projects.status, "active"),
+          eq(projects.status, "pending")
+        ),
+      });
+    }
 
-  return activeProjects;
+    if (userRole === "designer") {
+      // First get the user's projects
+      const userProjectIds = await db.query.userProjects.findMany({
+        where: eq(userProjects.userId, userId),
+        columns: {
+          projectId: true,
+        },
+      });
+
+      if (userProjectIds.length === 0) {
+        return [];
+      }
+
+      // Then get the active projects from those IDs
+      return await db.query.projects.findMany({
+        where: and(
+          inArray(
+            projects.id,
+            userProjectIds.map((up) => up.projectId)
+          ),
+          or(eq(projects.status, "active"), eq(projects.status, "pending"))
+        ),
+      });
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching active projects:", error);
+    throw new Error("Failed to fetch active projects");
+  }
 }
 
 export async function getProjectById(id: number) {
@@ -346,4 +381,33 @@ export async function revalidateProjectPaths() {
   revalidatePath("/", "layout");
   revalidatePath("/app", "layout");
   revalidatePath("/app/projects", "page");
+}
+
+export async function hasProjectAccess(
+  userId: number,
+  userRole: string,
+  projectId: number
+): Promise<boolean> {
+  try {
+    // Owners have access to all projects
+    if (userRole === "owner") {
+      return true;
+    }
+
+    // For designers, check if they are assigned to the project
+    if (userRole === "designer") {
+      const userProject = await db.query.userProjects.findFirst({
+        where: and(
+          eq(userProjects.userId, userId),
+          eq(userProjects.projectId, projectId)
+        ),
+      });
+      return !!userProject;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Error checking project access:", error);
+    throw new Error("Failed to check project access");
+  }
 }

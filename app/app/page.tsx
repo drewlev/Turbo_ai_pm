@@ -6,12 +6,19 @@ import { KanbanBoard } from "@/components/kanban-board";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { getTasks } from "@/app/actions/tasks";
 import { transformTasksForUI } from "@/app/types/task";
+import { getUserContext } from "@/app/actions/users";
+import { auth } from "@clerk/nextjs/server";
 
 export default async function TaskManagementApp() {
-  const tasks = await getTasks();
+  const session = await auth();
+  if (!session?.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const userContext = await getUserContext(session.userId);
+  const tasks = await getTasks(userContext.userId, userContext.role);
   const transformedTasks = transformTasksForUI(tasks);
   // const availableAssignees = await getAvailableAssignees();
-
 
   return (
     <Tabs defaultValue="table" className="w-full gap-0">

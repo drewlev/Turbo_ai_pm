@@ -283,7 +283,6 @@ export const teamRelations = relations(teams, ({ many }) => ({
   users: many(users),
 }));
 
-
 export const userSettingsRelations = relations(userSettings, ({ one }) => ({
   user: one(users, {
     fields: [userSettings.userId],
