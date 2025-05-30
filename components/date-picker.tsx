@@ -15,10 +15,19 @@ import {
 
 export function DatePicker({
   date: existingDate,
+  onValueChange,
 }: {
   date: Date;
+  onValueChange?: (date: Date) => void;
 }) {
   const [date, setDate] = React.useState<Date>(existingDate);
+
+  const handleDateSelect = (newDate: Date | undefined) => {
+    if (newDate) {
+      setDate(newDate);
+      onValueChange?.(newDate);
+    }
+  };
 
   return (
     <Popover>
@@ -31,7 +40,7 @@ export function DatePicker({
             !date && "text-muted-foreground"
           )}
         >
-          <CalendarIcon  className="mr-2 h-4 w-4" />
+          <CalendarIcon className="mr-2 h-4 w-4" />
           {date ? format(date, "PPP") : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
@@ -40,7 +49,7 @@ export function DatePicker({
           className="flex flex-row"
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={handleDateSelect}
           initialFocus
           required
         />

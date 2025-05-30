@@ -1,6 +1,6 @@
 "use server";
 import db from "@/app/db";
-import { looms, tasks } from "@/app/db/schema";
+import { looms, projects, tasks } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkIdToSerialId } from "./users";
 import { revalidatePath } from "next/cache";
@@ -56,6 +56,41 @@ export async function deleteLoomFromTask(taskId: number) {
     return {
       success: false,
       message: "Failed to delete Loom. Please try again.",
+    };
+  }
+}
+
+export async function getLoomsByProjectId(projectId: number) {
+  const projectLooms = await db.query.projects.findFirst({
+    where: eq(projects.id, projectId),
+    with: {
+      tasks: {
+        with: {
+          looms: true,
+        },
+      },
+    },
+  });
+  return projectLooms?.tasks;
+}
+
+export async function updateLoomTranscript(loomId: number, transcript: string) {
+  try {
+    await db
+      .update(looms)
+      .set({
+        transcript,
+        updatedAt: new Date(),
+      })
+      .where(eq(looms.id, loomId));
+
+    revalidatePath("/");
+    return { success: true, message: "Transcript updated successfully!" };
+  } catch (error: any) {
+    console.error("Error updating transcript:", error);
+    return {
+      success: false,
+      message: "Failed to update transcript. Please try again.",
     };
   }
 }

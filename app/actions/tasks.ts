@@ -1,60 +1,115 @@
 "use server";
 
 import db from "@/app/db";
-import { tasks, taskAssignees, users, looms } from "@/app/db/schema";
+import { tasks, taskAssignees, users, looms, meetings } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
+// Types
 export type TaskWithAssigneesType = typeof tasks.$inferSelect & {
   taskAssignees: (typeof taskAssignees.$inferSelect & {
     user: typeof users.$inferSelect;
   })[];
   looms?: (typeof looms.$inferSelect)[];
+  meeting?: typeof meetings.$inferSelect | null;
 };
 
-// Get all tasks
+export type TaskType = typeof tasks.$inferSelect;
+
+export type InsertTask = typeof tasks.$inferInsert & {
+  assigneeID?: number[];
+  meetingId?: number;
+};
+
+export type TaskResponse = {
+  success: boolean;
+  taskId?: number;
+  task?: TaskType;
+  assignedUsers?: (typeof taskAssignees.$inferSelect)[];
+  message?: string;
+  error?: string;
+};
+
+// Task Queries
 export async function getTasks(): Promise<TaskWithAssigneesType[]> {
-  const tasks = await db.query.tasks.findMany({
-    with: {
-      taskAssignees: {
-        with: {
-          user: true,
+  try {
+    return await db.query.tasks.findMany({
+      with: {
+        taskAssignees: {
+          with: {
+            user: true,
+          },
         },
+        project: true,
+        looms: true,
       },
-      project: true,
-      looms: true,
-    },
-  });
-  return tasks;
+    });
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    throw new Error("Failed to fetch tasks");
+  }
 }
 
-export async function getAvailableAssignees() {
-  const availableAssignees = await db.query.users.findMany({});
-  return availableAssignees;
+export async function getTaskById(
+  taskId: number
+): Promise<TaskWithAssigneesType | undefined> {
+  try {
+    const task = await db.query.tasks.findFirst({
+      where: eq(tasks.id, taskId),
+      with: {
+        taskAssignees: {
+          with: {
+            user: true,
+          },
+        },
+        looms: true,
+        meeting: true,
+      },
+    });
+    return task;
+  } catch (error) {
+    console.error(`Error fetching task ${taskId}:`, error);
+    throw new Error("Failed to fetch task");
+  }
 }
 
-// get taks based on project id
 export async function getTasksByProjectId(
   projectId: number
 ): Promise<TaskWithAssigneesType[]> {
-  const projectTasks = await db.query.tasks.findMany({
-    where: eq(tasks.projectId, projectId),
-    with: {
-      taskAssignees: {
-        with: {
-          user: true,
+  try {
+    return await db.query.tasks.findMany({
+      where: eq(tasks.projectId, projectId),
+      with: {
+        taskAssignees: {
+          with: {
+            user: true,
+          },
         },
+        looms: true,
+        meeting: true,
       },
-    },
-  });
-  return projectTasks;
+    });
+  } catch (error) {
+    console.error(`Error fetching tasks for project ${projectId}:`, error);
+    throw new Error("Failed to fetch project tasks");
+  }
 }
 
-type InsertTask = typeof tasks.$inferInsert & {
-  assigneeID?: number[];
-};
+export async function getAvailableAssignees(teamId: number) {
+  try {
+    const assignees = await db.query.users.findMany({
+      where: eq(users.teamId, teamId),
+    });
+    console.log("assignees", assignees);
+    return assignees;
+  } catch (error) {
+    console.error("Error fetching available assignees:", error);
+    throw new Error("Failed to fetch available assignees");
+  }
+}
 
-export async function createTask(task: InsertTask) {
+// Task Mutations
+export async function createTask(task: InsertTask): Promise<TaskType> {
   try {
     const [newTask] = await db
       .insert(tasks)
@@ -64,6 +119,7 @@ export async function createTask(task: InsertTask) {
         priority: task.priority,
         projectId: task.projectId,
         dueDate: task.dueDate,
+        meetingId: task.meetingId,
       })
       .returning();
 
@@ -71,44 +127,47 @@ export async function createTask(task: InsertTask) {
       throw new Error("Failed to create task");
     }
     return newTask;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating task:", error);
-    throw new Error(`Failed to create task: ${error.message}`); // Re-throw for consistent error handling
+    throw new Error(
+      `Failed to create task: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
 export async function updateTaskAssignees(
   taskId: number,
   assigneeIds: number[]
-) {
+): Promise<boolean> {
   try {
-    // First, delete existing assignees
     await db.delete(taskAssignees).where(eq(taskAssignees.taskId, taskId));
 
-    // Then, add new assignees if there are any
-    if (assigneeIds && assigneeIds.length > 0) {
+    if (assigneeIds?.length > 0) {
       const valuesToInsert = assigneeIds.map((userId) => ({ taskId, userId }));
       await db.insert(taskAssignees).values(valuesToInsert);
     }
 
     revalidatePath("/");
     return true;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating task assignees:", error);
-    throw new Error(`Failed to update task assignees: ${error.message}`);
+    throw new Error(
+      `Failed to update task assignees: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
 export async function updateTask(
   taskId: number,
   taskData: Partial<InsertTask>
-) {
-  console.log("Updating task:", taskId, taskData);
+): Promise<TaskType | null> {
   try {
-    // Extract assigneeIds from taskData
     const { assigneeID, ...taskUpdateData } = taskData;
 
-    // Update the task
     const [updatedTask] = await db
       .update(tasks)
       .set(taskUpdateData)
@@ -116,67 +175,96 @@ export async function updateTask(
       .returning();
 
     if (!updatedTask) {
-      console.error(`Failed to update task ${taskId}`);
-      return null;
+      throw new Error(`Failed to update task ${taskId}`);
     }
 
-    // Update assignees if provided
     if (assigneeID) {
       await updateTaskAssignees(taskId, assigneeID);
     }
 
     revalidatePath("/");
     return updatedTask;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating task:", error);
-    throw new Error(`Failed to update task: ${error.message}`);
+    throw new Error(
+      `Failed to update task: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
-export async function assignTask(taskId: number, assigneeIds: number[]) {
-  if (!assigneeIds || assigneeIds.length === 0) {
+export async function assignTask(
+  taskId: number,
+  assigneeIds: number[],
+  meetingId?: number
+): Promise<(typeof taskAssignees.$inferSelect)[]> {
+  if (!assigneeIds?.length) {
     return [];
   }
 
   try {
-    const valuesToInsert = assigneeIds.map((userId) => ({ taskId, userId }));
-    const newTaskAssignees = await db
-      .insert(taskAssignees)
-      .values(valuesToInsert)
-      .returning();
-    return newTaskAssignees;
-  } catch (error: any) {
+    const valuesToInsert = assigneeIds.map((userId) => ({
+      taskId,
+      userId,
+      meetingId,
+    }));
+    return await db.insert(taskAssignees).values(valuesToInsert).returning();
+  } catch (error) {
     console.error("Error assigning task:", error);
-    throw new Error(`Failed to assign task: ${error.message}`); // Re-throw the error
+    throw new Error(
+      `Failed to assign task: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
-export async function createTaskAndAssign(taskData: InsertTask) {
+export async function createTaskAndAssign(
+  taskData: InsertTask
+): Promise<TaskResponse> {
   try {
-    // 1. Create the task
     const newTask = await createTask(taskData);
     if (!newTask) {
-      throw new Error("Task creation failed."); // Explicitly handle task creation failure
+      throw new Error("Task creation failed");
     }
-    const taskId = newTask.id;
 
-    // 2. Assign the task to users
     let assignedUsers: (typeof taskAssignees.$inferSelect)[] = [];
-    if (taskData.assigneeID) {
-      assignedUsers = await assignTask(taskId, taskData.assigneeID);
+    if (taskData.assigneeID?.length) {
+      assignedUsers = await assignTask(
+        newTask.id,
+        taskData.assigneeID,
+        taskData.meetingId
+      );
     }
 
-    // 3. Return success data
     return {
       success: true,
-      taskId: taskId,
+      taskId: newTask.id,
       task: newTask,
       assignedUsers,
-      message: "Task created and assigned successfully!",
+      message: "Task created and assigned successfully",
     };
-  } catch (error: any) {
-    // Handle errors from createTask or assignTask
+  } catch (error) {
     console.error("Error in createTaskAndAssign:", error);
-    throw error; // Re-throw the error to be handled by the caller
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}
+
+// get task by userId
+export async function getTasksByUserId(userId: number) {
+  try {
+    const tasksByUser = await db.query.taskAssignees.findMany({
+      where: eq(taskAssignees.userId, userId),
+      with: {
+        task: true,
+      },
+    });
+    return tasksByUser;
+  } catch (error) {
+    console.error("Error fetching tasks by user:", error);
   }
 }

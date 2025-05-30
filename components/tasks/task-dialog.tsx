@@ -21,18 +21,19 @@ import { AddLoom } from "@/components/tasks/components/add-loom";
 import { z } from "zod";
 import { TaskTableTask } from "@/app/types/task";
 import { AssigneeButton } from "@/components/assign-users-button";
+import { getActiveProjects } from "@/app/actions/projects";
 
 const DateButton = ({
   date,
-  // onValueChange,
+  onValueChange,
 }: {
   date: string;
-  // onValueChange: (value: string) => void;
+  onValueChange: (value: string) => void;
 }) => {
   return (
     <DatePicker
       date={date ? new Date(date) : new Date()}
-      // onValueChange={(d) => d && onValueChange(d.toISOString())}
+      onValueChange={(d: Date) => onValueChange(d.toISOString())}
     />
   );
 };
@@ -133,12 +134,12 @@ const TaskActions = ({
   loomUrl?: string;
   selectedTask: TaskTableTask | null;
 }) => {
-  console.log(selectedTask?.loomUrl);
+
   return (
     <div className="flex items-center justify-between">
       {selectedTask && (
         <div className="flex items-center">
-          <AddLoom taskId={taskId || 0} loomUrl={selectedTask?.loomUrl} />
+          <AddLoom taskId={taskId || 0} loomUrl={selectedTask?.loomUrl?.[0]?.loomUrl} />
         </div>
       )}
       <div className="flex items-center gap-4">
@@ -161,18 +162,15 @@ const taskFormSchema = z.object({
   assigneeIds: z.array(z.number()).min(1, "At least one assignee is required"),
 });
 
-
 export default function TaskModal({
   open,
   onOpenChange,
   selectedTask,
-  projects,
   availableAssignees,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedTask: TaskTableTask | null;
-  projects: { title: string; url: string; id: number }[];
   availableAssignees: { id: number; name: string }[];
 }) {
   const [formData, setFormData] = useState({
@@ -184,6 +182,24 @@ export default function TaskModal({
     assignees: [] as { url: string; id: number }[],
     date: "",
   });
+
+  const [projects, setProjects] = useState<
+    { title: string; url: string; id: number }[]
+  >([]);
+
+  // Fetch fresh project data when dialog opens
+  useEffect(() => {
+    if (open) {
+      getActiveProjects().then((activeProjects) => {
+        const formattedProjects = activeProjects.map((project) => ({
+          title: project.name,
+          url: `/app/projects/${project.id}`,
+          id: project.id,
+        }));
+        setProjects(formattedProjects);
+      });
+    }
+  }, [open]);
 
   // Initialize form when dialog opens with a task
   useEffect(() => {
@@ -225,6 +241,8 @@ export default function TaskModal({
     value: project.id.toString(),
     label: project.title,
   }));
+
+
 
   const handleCreateTask = async () => {
     try {
@@ -270,7 +288,7 @@ export default function TaskModal({
     }
   };
 
-  console.log(formData.status, { formData });
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -360,9 +378,9 @@ export default function TaskModal({
             />
             <DateButton
               date={formData.date}
-              // onValueChange={(value) =>
-              //   setFormData((prev) => ({ ...prev, date: value }))
-              // }
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, date: value }))
+              }
             />
           </div>
 
@@ -376,7 +394,7 @@ export default function TaskModal({
             date={formData.date}
             selectedTask={selectedTask}
             taskId={selectedTask?.id ? parseInt(selectedTask.id) : null}
-            loomUrl={selectedTask?.loomUrl}
+            loomUrl={selectedTask?.loomUrl?.[0]?.loomUrl}
           />
         </div>
       </DialogContent>

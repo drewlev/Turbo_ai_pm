@@ -34,6 +34,25 @@ export async function publishQStashMessage(
   }
 }
 
+export async function publishQStashCron<T>(
+  cron: string,
+  payload: T,
+  endpoint: string
+) {
+  try {
+    const response = await qstash.schedules.create({
+      cron,
+      body: JSON.stringify(payload),
+      destination: qstashUrl + endpoint,
+    });
+    console.log("[QStash] Message published successfully:", response);
+    return response;
+  } catch (error) {
+    console.error("[QStash] Failed to publish message:", error);
+    throw error;
+  }
+}
+
 export async function cancelReminder(messageId: string) {
   try {
     const response = await fetch(

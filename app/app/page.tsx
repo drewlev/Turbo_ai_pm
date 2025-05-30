@@ -1,27 +1,21 @@
 "use server";
 
-import { LayoutGrid, List } from "lucide-react";
+// import { LayoutGrid, List } from "lucide-react";
 import { TaskTableClient } from "@/components/tasks/task-table-client";
 import { KanbanBoard } from "@/components/kanban-board";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAvailableAssignees, getTasks } from "@/app/actions/tasks";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { getTasks } from "@/app/actions/tasks";
 import { transformTasksForUI } from "@/app/types/task";
-import { getActiveProjects } from "@/app/actions/projects";
 
 export default async function TaskManagementApp() {
   const tasks = await getTasks();
   const transformedTasks = transformTasksForUI(tasks);
-  const activeProjects = await getActiveProjects();
-  const availableAssignees = await getAvailableAssignees();
-  const projects = activeProjects.map((project) => ({
-    id: project.id,
-    title: project.name,
-    url: project.id.toString(),
-  }));
+  // const availableAssignees = await getAvailableAssignees();
+
 
   return (
     <Tabs defaultValue="table" className="w-full gap-0">
-      <header className="h-14 border-b border-[var(--border-dark)] flex items-center px-4 justify-between">
+      <header className="bg-[var(--background-dark)] h-14 border-b border-[var(--border-dark)] flex items-center px-4 justify-between">
         {/* <div className="flex items-center gap-2">
           <SidebarTrigger className="mr-2 text-[var(--text-secondary)]" />
           <Button
@@ -38,7 +32,7 @@ export default async function TaskManagementApp() {
             <span className="mr-2">Filter</span>
           </Button>
         </div> */}
-        <TabsList className="bg-[var(--background-dark)]">
+        {/* <TabsList className="bg-[var(--background-dark)]">
           <TabsTrigger
             value="table"
             className="flex items-center gap-2 data-[state=active]:bg-gray-500"
@@ -51,7 +45,7 @@ export default async function TaskManagementApp() {
           >
             <LayoutGrid className="h-4 w-4 text-white" />
           </TabsTrigger>
-        </TabsList>
+        </TabsList> */}
       </header>
 
       <main className="flex h-[calc(100vh-3.5rem)] p-4 overflow-auto bg-[var(--background-dark)]">
@@ -60,8 +54,7 @@ export default async function TaskManagementApp() {
             tasks={transformedTasks}
             title="Todo"
             count={tasks.length}
-            projects={projects}
-            availableAssignees={availableAssignees}
+            // availableAssignees={availableAssignees}
           />
         </TabsContent>
         <TabsContent value="kanban">

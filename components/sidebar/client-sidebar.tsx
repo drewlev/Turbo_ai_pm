@@ -11,7 +11,7 @@ export const ClientSidebarMenu = () => {
     <SidebarMenu className="px-2">
       <SidebarMenuItem>
         <SidebarMenuButton
-          className="text-[#d2d3e0]"
+          className="text-[#d2d3e0] hover:bg-[var(--hover)] hover:text-text-[#d2d3e0]"
           onClick={() => router.push("/app")} // Use onClick here
         >
           <Clipboard className="h-4 w-4" />

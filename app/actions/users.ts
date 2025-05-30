@@ -1,7 +1,9 @@
+"use server";
 import db from "@/app/db";
 import { users } from "@/app/db/schema";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
+import { cache } from "react";
 
 // used for assignee dropdown
 export async function getUsers() {
@@ -30,4 +32,94 @@ export async function clerkIdToSerialId(inputedClerkId?: string) {
   }
 
   return user.id;
+}
+
+export async function serialIdToClerkId(serialId: number) {
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, serialId),
+  });
+  return user?.clerkId;
+}
+
+export const isUserOnboarded = cache(async (): Promise<boolean> => {
+  const authData = await auth();
+  if (!authData?.userId) {
+    return false;
+  }
+
+  const user = await (await clerkClient()).users.getUser(authData.userId);
+  return user.publicMetadata.onboarded === true;
+});
+
+export async function updateUserOnboardedStatus(onboarded: boolean) {
+  const authData = await auth();
+  if (!authData?.userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Update Clerk metadata
+  await (
+    await clerkClient()
+  ).users.updateUserMetadata(authData.userId, {
+    publicMetadata: {
+      onboarded,
+    },
+  });
+}
+
+/**
+ * Update the user's onboarding status in Clerk metadata
+ */
+export async function updateUserOnboardingStatus(onboarded: boolean) {
+  try {
+    const user = await currentUser();
+    if (!user) {
+      throw new Error("No user found");
+    }
+
+    await (
+      await clerkClient()
+    ).users.updateUserMetadata(user.id, {
+      publicMetadata: {
+        ...user.publicMetadata,
+        onboarded,
+      },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("[updateUserOnboardingStatus] Error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update onboarding status",
+    };
+  }
+}
+
+// ===== create user =====
+
+export async function createUser(userToInsert: typeof users.$inferInsert) {
+  //TODO: dynamic teamId
+  await db.insert(users).values({ ...userToInsert, teamId: 1 });
+}
+
+export async function getTeamId() {
+  const authData = await auth();
+  if (!authData) {
+    throw new Error("Unauthorized");
+  }
+  const clerkId = authData.userId;  
+
+  if (!clerkId) {
+    throw new Error("Unauthorized");
+  }
+
+  const teamId = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  return teamId?.teamId;
 }

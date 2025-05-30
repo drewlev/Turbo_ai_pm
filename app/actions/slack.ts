@@ -1,150 +1,228 @@
 "use server";
 
 import db from "@/app/db";
-import { slackUsers } from "@/app/db/schema";
+import { slackInstallations, slackUsers } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkIdToSerialId } from "./users";
+import {
+  SlackApiResponse,
+  SlackInstall,
+  SlackOAuthResponse,
+} from "@/app/types/slack";
 
-interface SlackOAuthResponse {
-  ok: boolean;
-  app_id: string;
-  authed_user: {
-    id: string;
-    scope: string; // Comma-separated scopes
-    access_token: string;
-    token_type: string; // Typically 'user'
-  };
-  scope: string; // Comma-separated scopes for the bot/app
-  token_type: string; // Typically 'bot'
-  access_token: string; // Bot's access token
-  bot_user_id: string;
-  team: {
-    id: string;
-    name: string;
-  };
-  enterprise: null | any; // Can be null or an object if it's an enterprise install
-  is_enterprise_install: boolean;
+// Constants
+const SLACK_API_BASE = "https://slack.com/api";
+const SLACK_WEBHOOK_BASE = process.env.SLACK_WEBHOOK_URL;
+
+// Error classes
+class SlackError extends Error {
+  constructor(message: string, public readonly code?: string) {
+    super(message);
+    this.name = "SlackError";
+  }
 }
 
-export const sendMessageToSlack = async (message: string, userId: number) => {
-  //   const slackUserId = user.slackUserId;
-  const slackUser = await db.query.slackUsers.findFirst({
-    where: eq(slackUsers.userId, userId),
-    with: {
-      slackInstallation: true,
-    },
-  });
-
-  console.log({ slackUser });
-
-  if (!slackUser) {
-    throw new Error("Slack user not found");
+// Helper functions
+async function handleSlackApiResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new SlackError(
+      errorData.error || response.statusText,
+      errorData.code
+    );
   }
+  return response.json();
+}
 
+// Main functions
+export const sendMessageToSlack = async (
+  message: string,
+  userId: number
+
+): Promise<SlackApiResponse<unknown>> => {
   try {
-    console.log(
-      "Sending request to:",
-      process.env.SLACK_WEBHOOK_URL + "/send-reminders"
-    );
-    console.log("Request payload:", {
-      message,
-      slackUserId: slackUser.slackUserId,
-      teamId: slackUser.slackTeamId,
-    });
+    const slackUser = await db.query.slackUsers.findFirst({
+      where: eq(slackUsers.userId, userId),
+      with: {
+        slackInstallation: true,
 
-    const response = await fetch(
-      process.env.SLACK_WEBHOOK_URL + "/send-reminders",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message,
-          slackUserId: slackUser.slackUserId,
-          teamId: slackUser.slackTeamId,
-          botToken: "placeholder",
-        }),
-      }
-    );
-
-    console.log("Response status:", response.status);
-    const responseData = await response.json();
-    console.log("Response data:", responseData);
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to send message: ${responseData.error || response.statusText}`
-      );
-    }
-
-    return responseData;
-  } catch (error) {
-    console.error("Error sending message to Slack:", error);
-    throw error;
-  }
-};
-
-export const createSlackOAuthUrl = async () => {
-  const userId = await clerkIdToSerialId();
-
-  // Encode the state as base64 to make it URL-safe
-  const encodedState = btoa(JSON.stringify({ userId }));
-  const slackuri = process.env.SLACK_REDIRECT_URI;
-  const slackClientId = process.env.SLACK_CLIENT_ID;
-
-  const slackOAuthUrl = `https://slack.com/oauth/v2/authorize?client_id=${slackClientId}&scope=users:read,users:read.email&user_scope=users:read,users:read.email&redirect_uri=${slackuri}&state=${encodedState}`;
-
-  return slackOAuthUrl;
-};
-
-export const assignSlackUser = async (slackCode: string, state: string) => {
-  const decodedState = JSON.parse(atob(state));
-  const userId = decodedState.userId;
-  console.log({ userId });
-  // const userId = await clerkIdToSerialId(clerkId);
-
-  //hit slack to get code
-  const tokenRes = await fetch("https://slack.com/api/oauth.v2.access", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      code: slackCode,
-      client_id: process.env.SLACK_CLIENT_ID!,
-      client_secret: process.env.SLACK_CLIENT_SECRET!,
-      redirect_uri: process.env.SLACK_REDIRECT_URI!,
-    }),
-  });
-
-  console.log(tokenRes);
-  const slackData: SlackOAuthResponse = await tokenRes.json();
-  console.log({ slackData });
-  const slackUserId = slackData.authed_user.id;
-  const teamId = slackData.team.id;
-
-  // Use upsert operation to either insert or update the slack user
-  const user = await db
-    .insert(slackUsers)
-    .values({
-      userId: userId,
-      slackUserId: slackUserId,
-      slackTeamId: teamId,
-      slackTeamName: slackData.team.name,
-      slackAccessToken: slackData.authed_user.access_token,
-    })
-    .onConflictDoUpdate({
-      target: slackUsers.slackUserId,
-      set: {
-        slackUserId: slackUserId,
-        slackTeamId: teamId,
-        slackTeamName: slackData.team.name,
-        slackAccessToken: slackData.authed_user.access_token,
       },
     });
 
-  if (!user) {
-    throw new Error("Failed to update or insert slack user");
-  }
+    if (!slackUser) {
+      throw new SlackError("Slack user not found");
+    }
 
-  return { message: "success" };
+    const response = await fetch(`${SLACK_WEBHOOK_BASE}/send-reminders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message,
+        slackUserId: slackUser.slackUserId,
+        teamId: slackUser.slackTeamId,
+        botToken: slackUser.slackInstallation?.botToken,
+      }),
+    });
+
+    const data = await handleSlackApiResponse(response);
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error sending message to Slack:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to send message",
+    };
+  }
 };
+
+export const createSlackOAuthUrl = async (): Promise<string> => {
+  const userId = await clerkIdToSerialId();
+  const encodedState = btoa(JSON.stringify({ userId }));
+
+  return `https://slack.com/oauth/v2/authorize?client_id=${process.env.SLACK_CLIENT_ID}&scope=users:read,users:read.email&user_scope=users:read,users:read.email&redirect_uri=${process.env.SLACK_REDIRECT_URI}&state=${encodedState}`;
+};
+
+export const assignSlackUser = async (
+  slackCode: string,
+  state: string
+): Promise<SlackApiResponse<any>> => {
+  try {
+    const decodedState = JSON.parse(atob(state));
+    const userId = decodedState.userId;
+
+    const tokenRes = await fetch(`${SLACK_API_BASE}/oauth.v2.access`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code: slackCode,
+        client_id: process.env.SLACK_CLIENT_ID!,
+        client_secret: process.env.SLACK_CLIENT_SECRET!,
+        redirect_uri: process.env.SLACK_REDIRECT_URI!,
+      }),
+    });
+
+    const slackData: SlackOAuthResponse = await handleSlackApiResponse(
+      tokenRes
+    );
+    const { id: slackUserId } = slackData.authed_user;
+    const teamId = slackData.team.id;
+
+    const [slackUser] = await db
+      .insert(slackUsers)
+      .values({
+        userId,
+        slackUserId,
+        slackTeamId: teamId,
+        slackTeamName: slackData.team.name,
+        slackAccessToken: slackData.authed_user.access_token,
+      })
+      .onConflictDoUpdate({
+        target: slackUsers.slackUserId,
+        set: {
+          slackUserId,
+          slackTeamId: teamId,
+          slackTeamName: slackData.team.name,
+          slackAccessToken: slackData.authed_user.access_token,
+        },
+      })
+      .returning();
+
+    const slackUserWithUserData = await db.query.slackUsers.findFirst({
+      where: eq(slackUsers.id, slackUser.id),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            teamId: true,
+          },
+        },
+      },
+    });
+
+    if (!slackUserWithUserData) {
+      throw new SlackError("Failed to retrieve slack user data");
+    }
+
+    const botInstallation = await db.query.slackInstallations.findFirst({
+      where: eq(slackInstallations.slackTeamId, teamId),
+    });
+
+    if (
+      botInstallation &&
+      !botInstallation.team &&
+      slackUserWithUserData.user?.teamId
+    ) {
+      await db
+        .update(slackInstallations)
+        .set({ team: slackUserWithUserData.user.teamId })
+        .where(eq(slackInstallations.slackTeamId, teamId));
+    }
+
+    return { success: true, data: slackUserWithUserData };
+  } catch (error) {
+    console.error("Error assigning Slack user:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to assign Slack user",
+    };
+  }
+};
+
+export const saveSlackInstall = async (
+  slackInstall: SlackInstall
+): Promise<SlackApiResponse<any>> => {
+  try {
+    const [installation] = await db
+      .insert(slackInstallations)
+      .values({
+        slackTeamId: slackInstall.teamId,
+        teamName: slackInstall.teamName,
+        botToken: slackInstall.botToken,
+        installerUserId: slackInstall.installerUserId,
+      })
+      .onConflictDoUpdate({
+        target: slackInstallations.slackTeamId,
+        set: {
+          teamName: slackInstall.teamName,
+          botToken: slackInstall.botToken,
+          installerUserId: slackInstall.installerUserId,
+        },
+      })
+      .returning();
+
+    const existingUser = await db.query.slackUsers.findFirst({
+      where: eq(slackUsers.slackTeamId, slackInstall.teamId),
+      with: {
+        user: true,
+      },
+    });
+
+    if (existingUser?.user?.teamId) {
+      await db
+        .update(slackInstallations)
+        .set({ team: existingUser.user.teamId })
+        .where(eq(slackInstallations.slackTeamId, slackInstall.teamId));
+    }
+
+    return { success: true, data: installation };
+  } catch (error) {
+    console.error("Error saving Slack installation:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to save Slack installation",
+    };
+  }
+};
+
+export async function getUserIdBySlackUserId(slackUserId: string) {
+  const slackUser = await db.query.slackUsers.findFirst({
+    where: eq(slackUsers.slackUserId, slackUserId),
+  });
+  return slackUser?.userId;
+}

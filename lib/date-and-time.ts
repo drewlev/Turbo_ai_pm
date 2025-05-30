@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDistanceToNowStrict, differenceInDays } from "date-fns";
+import { formatDistanceToNowStrict, differenceInCalendarDays } from "date-fns";
 import { useState, useEffect } from "react";
 
 interface DaysOutDisplayerProps {
@@ -25,14 +25,14 @@ export const DaysOutDisplayer = ({ dateString }: DaysOutDisplayerProps) => {
         return;
       }
 
-      const daysDifference = differenceInDays(date, new Date());
+      const daysDifference = differenceInCalendarDays(date, new Date());
 
       if (daysDifference === 0) {
         setDisplayString("Today");
       } else if (daysDifference === 1) {
-        setDisplayString("In 1d");
+        setDisplayString("Tomorrow");
       } else if (daysDifference === -1) {
-        setDisplayString("-1d");
+        setDisplayString("Yesterday");
       } else if (daysDifference > 1) {
         setDisplayString(`In ${daysDifference}d`);
       } else if (daysDifference < -1) {
@@ -47,5 +47,5 @@ export const DaysOutDisplayer = ({ dateString }: DaysOutDisplayerProps) => {
     }
   }, [dateString]);
 
-  return displayString;
+  return displayString ;
 };

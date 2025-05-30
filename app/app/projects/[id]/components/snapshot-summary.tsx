@@ -1,102 +1,133 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Circle } from "lucide-react";
+// import type { ReactNode } from "react";
 
 export function SnapshotSummary() {
   return (
-    <section className="mb-8">
-      <Card className="p-6 shadow-sm bg-[var(--background-dark)/10] border-[var(--border-dark)]">
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
-          {/* Left Column (70%) */}
-          <div className="lg:col-span-5 space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Project Status
-              </h3>
-              <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
-                The website redesign project is currently in the design phase.
-                Initial wireframes have been approved, and the team is now
-                working on high-fidelity mockups. Client feedback has been
-                positive, but there are concerns about the timeline for the
-                development phase.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Top 3 Next Actions
-              </h3>
-              <ul className="space-y-2">
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>Complete homepage design by May 15</span>
-                </li>
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>Schedule design review meeting with client</span>
-                </li>
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>Finalize content requirements for product pages</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Open Questions
-              </h3>
-              <ul className="space-y-2">
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>
-                    Will the client provide product photography or should we
-                    source stock images?
-                  </span>
-                </li>
-                <li className="flex gap-2 text-sm text-[var(--text-secondary)]">
-                  <span>Do we need to support IE11 for this project?</span>
-                </li>
-              </ul>
-            </div>
+    <div className="flex flex-col gap-4 p-4">
+      {/* <div className="flex flex-col p-4 text-white bg-[var(--background-dark)] border border-[var(--border-dark)] rounded-lg">
+        <SnapshotRow label="Project Phase">
+          <span className="text-sm">Design 2/4</span>
+        </SnapshotRow>
+        <SnapshotRow label="Client Contact">
+          <div className="flex items-center gap-2 text-sm">
+            <Avatar className="h-4 w-4">
+              <AvatarImage
+                src="/placeholder.svg?height=20&width=20"
+                alt="Alex Levine"
+              />
+              <AvatarFallback>AL</AvatarFallback>
+            </Avatar>
+            <span>Alex Levine</span>
+            <span className="text-[#6e6a68] ml-2">alex@rallyhq.com</span>
           </div>
-
-          {/* Right Column (30%) */}
-          <div className="lg:col-span-2 space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Project Phase
-              </h3>
-              <div className="text-sm px-3 py-2 bg-[var(--background-dark)] text-[var(--text-primary)] border border-[var(--border-accent)] rounded-md inline-block">
-                Design (2 of 4)
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Client Contact
-              </h3>
-              <div className="text-sm space-y-1">
-                <p className="font-medium text-[var(--text-primary)]">
-                  Sarah Johnson
-                </p>
-                <p className="text-[var(--text-secondary)]">
-                  sarah@acmeinc.com
-                </p>
-                <p className="text-[var(--text-secondary)]">(555) 123-4567</p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-[var(--text-primary)]">
-                Last Loom Sent
-              </h3>
-              <p className="text-sm text-[var(--text-secondary)]">
-                May 8, 2025 (2 days ago)
-              </p>
-              <p className="text-sm text-[var(--text-primary)] mt-1 cursor-pointer hover:text-[var(--text-secondary)] transition-colors">
-                View recording →
-              </p>
-            </div>
+        </SnapshotRow>
+        <SnapshotRow label="Last Loom Sent" className="mb-0">
+          <div className="flex items-center text-sm">
+            <span>May 8, 2025 (2 days ago)</span>
+            <Link
+              href="#"
+              className="text-[#dd743b] text-xs flex items-center ml-2"
+            >
+              View Recording <ArrowRight className="h-3 w-3 ml-1" />
+            </Link>
           </div>
-        </div>
-      </Card>
-    </section>
+        </SnapshotRow>
+      </div> */}
+
+      <div className="grid grid-cols-3 gap-4 t">
+        <ProjectUpdateCard
+          title="Project Status"
+          updates={[
+            "The project is progressing as expected. Wireframes are approved",
+            "Mockups are in review",
+            "Client feedback is positive",
+            "Timeline concerns remain",
+          ]}
+          icon={<Circle className="h-3 w-3 fill-[#5092e0] text-[#5092e0]" />}
+        />
+
+        <ProjectUpdateCard
+          title="Project Status"
+          updates={[
+            "The project is progressing as expected. Wireframes are approved",
+            "Mockups are in review",
+            "Client feedback is positive",
+            "Timeline concerns remain",
+          ]}
+          icon={<Circle className="h-3 w-3 fill-[#5092e0] text-[#5092e0]" />}
+        />
+
+        <ProjectUpdateCard
+          title="Project Status"
+          updates={[
+            "The project is progressing as expected. Wireframes are approved",
+            "Mockups are in review",
+            "Client feedback is positive",
+            "Timeline concerns remain",
+          ]}
+          icon={<Circle className="h-3 w-3 fill-[#5092e0] text-[#5092e0]" />}
+        />
+      </div>
+    </div>
   );
 }
+
+// Component for rendering a label/content row
+// type SnapshotRowProps = {
+//   label: string;
+//   children: ReactNode;
+//   className?: string;
+// };
+
+// function SnapshotRow({
+//   label,
+//   children,
+//   className = "mb-4",
+// }: SnapshotRowProps) {
+//   return (
+//     <div className={`flex items-center ${className}`}>
+//       <div className="w-36 text-xs text-[#6e6a68]">{label}</div>
+//       <div className="flex-1">{children}</div>
+//     </div>
+//   );
+// }
+
+const ProjectUpdateCard = ({
+  title,
+  updates,
+  icon,
+}: {
+  title: string;
+  updates: string[];
+  icon: React.ReactNode;
+}) => {
+  return (
+    // Card container with dark background, white text, rounded corners, and padding
+    <Card className="w-full max-w-md bg-[var(--background-dark)] border border-[var(--border-dark)] rounded-lg gap-2">
+      <CardHeader className="flex items-center gap-2">
+        {/* Custom blue square icon or passed-in icon */}
+        {icon}
+        {/* Card title with white text and bold font */}
+        <CardTitle className="text-lg font-semibold text-white">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Unordered list for updates, with no default list style and increased vertical spacing */}
+        <ul className="list-none space-y-2 text-white">
+          {updates.map((update, idx) => (
+            // Each list item is relative for positioning the custom bullet
+            <li key={idx} className="relative pl-4 text-sm">
+              {/* Custom dark gray bullet point, aligned to the top of the line */}
+              <span className="absolute left-0 top-1.75 w-1.5 h-1.5 bg-[var(--border-accent)] rounded-full"></span>
+              {update}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+};

@@ -65,3 +65,17 @@ export async function hasFirefliesApiKey() {
 
   return !!user?.userSettings?.firefliesApiKey;
 }
+
+// returns users id
+export async function getFirefliesWebhookUrl() {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) {
+    throw new Error("Not authenticated");
+  }
+
+  const userId = await clerkIdToSerialId(clerkId);
+  if (!userId) {
+    throw new Error("User not found");
+  }
+  return userId;
+}

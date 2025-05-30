@@ -23,6 +23,8 @@ export const users = pgTable("users", {
   name: text("name"),
   email: text("email").notNull().unique(),
   role: text("role").notNull().default("designer"),
+  teamId: integer("team_id").references(() => teams.id),
+  onboarded: boolean("onboarded").notNull().default(false),
 });
 
 export const userSettings = pgTable("user_settings", {
@@ -50,9 +52,7 @@ export const slackInstallations = pgTable("slack_installations", {
   teamName: text("team_name").notNull(),
   botToken: text("bot_token").notNull(),
   installerUserId: text("installer_user_id").notNull(),
-  team: integer("team_id")
-    .notNull()
-    .references(() => teams.id),
+  team: integer("team_id").references(() => teams.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -112,17 +112,18 @@ export const calendarEvents = pgTable("calendar_events", {
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  websiteUrl: text("website_url"),
   description: text("description"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  status: text("status"),
+  status: text("status").notNull().default("pending"), // pending, active, completed
 });
 
 export const onboarding = pgTable("onboarding", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").references(() => projects.id),
   slug: text("slug").notNull().unique(), // for link URL
-  status: text("status").notNull(), // ✅ now supports dynamic status strings
+  status: text("status").notNull(), // pending, active, completed
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   submittedAt: timestamp("submitted_at"),
@@ -130,9 +131,8 @@ export const onboarding = pgTable("onboarding", {
 
 export const onboardingFormQuestions = pgTable("onboarding_form_questions", {
   id: serial("id").primaryKey(),
-  order: integer("order").notNull(), // for step order
   type: text("type").$type<"text" | "email" | "url" | "textarea">().notNull(),
-  label: text("label").notNull(),
+  label: text("label").notNull().unique(),
   placeholder: text("placeholder"),
   required: boolean("required").notNull().default(true),
 });
@@ -146,6 +146,7 @@ export const onboardingQuestions = pgTable(
     questionId: integer("question_id")
       .notNull()
       .references(() => onboardingFormQuestions.id),
+    order: integer("order").notNull(), // for step order
   },
   (table) => [primaryKey({ columns: [table.onboardingId, table.questionId] })]
 );
@@ -228,6 +229,7 @@ export const tasks = pgTable("tasks", {
   status: text("status").notNull().default("todo"),
   priority: text("priority").notNull().default("medium"),
   dueDate: timestamp("due_date"),
+  meetingId: integer("meeting_id").references(() => meetings.id),
 });
 
 export const taskAssignees = pgTable(
@@ -249,6 +251,7 @@ export const looms = pgTable("looms", {
   id: serial("id").primaryKey(),
   taskId: integer("task_id").references(() => tasks.id),
   userId: integer("user_id").references(() => users.id),
+  transcript: text("transcript"),
   loomUrl: text("loom_url").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -270,7 +273,16 @@ export const userRelations = relations(users, ({ many, one }) => ({
     fields: [users.id],
     references: [userSettings.userId],
   }),
+  team: one(teams, {
+    fields: [users.teamId],
+    references: [teams.id],
+  }),
 }));
+
+export const teamRelations = relations(teams, ({ many }) => ({
+  users: many(users),
+}));
+
 
 export const userSettingsRelations = relations(userSettings, ({ one }) => ({
   user: one(users, {
@@ -301,6 +313,8 @@ export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull(),
+  linkedinUrl: text("linkedin_url"),
+  role: text("role"),
   projectId: integer("project").references(() => projects.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -314,6 +328,10 @@ export const taskRelations = relations(tasks, ({ one, many }) => ({
   }),
   taskAssignees: many(taskAssignees),
   looms: many(looms),
+  meeting: one(meetings, {
+    fields: [tasks.meetingId],
+    references: [meetings.id],
+  }),
 }));
 
 // Task Assignee Relations
@@ -351,14 +369,18 @@ export const meetingRelations = relations(meetings, ({ one, many }) => ({
   speakers: many(speakers),
   participants: many(participants),
   importTranscripts: one(importTranscripts),
+  tasks: many(tasks),
 }));
 
-export const importTranscriptRelations = relations(importTranscripts, ({ one }) => ({
-  meeting: one(meetings, {
-    fields: [importTranscripts.meetingId],
-    references: [meetings.id],
-  }),
-}));
+export const importTranscriptRelations = relations(
+  importTranscripts,
+  ({ one }) => ({
+    meeting: one(meetings, {
+      fields: [importTranscripts.meetingId],
+      references: [meetings.id],
+    }),
+  })
+);
 
 // Sentence Relations
 export const sentenceRelations = relations(sentences, ({ one }) => ({

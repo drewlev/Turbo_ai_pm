@@ -51,7 +51,7 @@ export default function Frame({
       <div className="relative border-b border-[var(--border-dark)]">
         {/* Hover Highlight */}
         <div
-          className="absolute top-[20%] h-[30px] transition-all duration-300 ease-out bg-white/20 dark:bg-[#ffffff1a] rounded-[6px]"
+          className="absolute top-[20%] h-[30px] transition-all duration-300 ease-out bg-[#ffffff33] dark:bg-[#ffffff1a] rounded-[6px]"
           style={{ ...hoverStyle, opacity: hoveredIndex !== null ? 1 : 0 }}
         />
 

@@ -43,7 +43,6 @@ export const StatusButton = ({
   onClick?: (e: React.MouseEvent) => void;
 }) => {
   const handleStatusChange = async (newStatus: string) => {
-    console.log("here 3 ", { newStatus });
     try {
       const updatedTask = await updateTask(taskId, {
         status: newStatus,
@@ -56,8 +55,6 @@ export const StatusButton = ({
       // Optionally, update local state to reflect an error
     }
   };
-
-  console.log({ status });
 
   return (
     <Combobox

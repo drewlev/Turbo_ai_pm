@@ -1,6 +1,5 @@
 "use client";
 
-import TaskModal from "@/components/tasks/task-dialog";
 import {
   flexRender,
   getCoreRowModel,
@@ -22,6 +21,14 @@ import { StatusButton } from "@/components/tasks/status-button";
 import { DaysOutDisplayer } from "@/lib/date-and-time";
 import { ColumnDef } from "@tanstack/react-table";
 import { StackedInitials } from "../stacked-avatars";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useRouter } from "next/navigation";
+
 const columns: ColumnDef<TaskTableTask>[] = [
   // {
   //   id: "select",
@@ -66,15 +73,26 @@ const columns: ColumnDef<TaskTableTask>[] = [
     cell: ({ row }) => <div>{row.getValue("title")}</div>,
   },
   {
-    accessorKey: "date",
-    header: "Date",
+    accessorKey: "dueDate",
+    header: "Due Date",
     cell: ({ row }) => {
-      const date = row.getValue("date") as string;
-      return date ? (
+      const date = row.getValue("dueDate") as string;
+      return (
         <div className="text-xs text-[var(--text-secondary)]">
-          <DaysOutDisplayer dateString={date} />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <DaysOutDisplayer dateString={date} />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {date ? new Date(date).toLocaleDateString() : "No due date"}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-      ) : null;
+      );
     },
   },
   {
@@ -93,25 +111,17 @@ interface TaskTableClientProps {
   tasks: TaskTableTask[];
   title: string;
   count: number;
-  projects: {
-    id: number;
-    title: string;
-    url: string;
-  }[];
-  availableAssignees: any[];
+  // availableAssignees: any[];
 }
 
 export function TaskTableClient({
   tasks,
   title,
   count,
-  projects,
-  availableAssignees,
+  // availableAssignees,
 }: TaskTableClientProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [selectedTask, setSelectedTask] = useState<TaskTableTask | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  console.log({ selectedTask });
+  const router = useRouter();
   const table = useReactTable({
     data: tasks,
     columns,
@@ -124,8 +134,7 @@ export function TaskTableClient({
   });
 
   const handleRowClick = (task: TaskTableTask) => {
-    setSelectedTask(task);
-    setDialogOpen(true);
+    router.push(`/app/task/${task.id}`);
   };
 
   return (
@@ -136,13 +145,13 @@ export function TaskTableClient({
           {count}
         </span>
       </h2>
-      <div className="rounded-md border border-gray-500 overflow-hidden">
+      <div className="rounded-md border border-[var(--box-accent)] overflow-hidden">
         <Table>
-          <TableHeader className="bg-[var(--sidebar)] rounded-t-md">
+          <TableHeader className="bg-transparent rounded-t-md">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="hover:bg-transparent border-b border-gray-500"
+                className="hover:bg-transparent border-b border-[var(--box-accent)]"
               >
                 {headerGroup.headers.map((header) => (
                   <TableHead
@@ -165,7 +174,7 @@ export function TaskTableClient({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="group cursor-pointer border-b border-gray-500"
+                  className="group cursor-pointer border-b border-[var(--border-dark)]"
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() => handleRowClick(row.original)}
                 >
@@ -199,15 +208,6 @@ export function TaskTableClient({
           </TableBody>
         </Table>
       </div>
-      {selectedTask && (
-        <TaskModal
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          selectedTask={selectedTask}
-          projects={projects}
-          availableAssignees={availableAssignees}
-        />
-      )}
     </div>
   );
 }

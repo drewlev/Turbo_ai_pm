@@ -26,7 +26,7 @@ export const AssigneeButton = ({
   assigneeOptions,
   onValueChange,
   placeholder = "Assignee",
-  className = "h-8 text-xs bg-transparent border-[#2a2a2a] text-gray-300 hover:bg-[#2a2a2a] hover:text-white",
+  // className = "h-8 text-xs bg-transparent border-[var(--border-dark)] text-[var(--text-primary)] hover:bg-[var(--background-light)] hover:text-white",
 }: AssigneeButtonProps) => {
   return (
     <Combobox
@@ -35,16 +35,15 @@ export const AssigneeButton = ({
       multiSelect={true}
       onValueChange={(value) => {
         const selectedIds = value as string[];
-        // const selectedAssignees = selectedIds
-        //   .map((id) => {
-        //     const option = assigneeOptions.find((opt) => opt.value === id);
-        //     return option ? { url: id, id: parseInt(id) } : null;
-        //   })
-        //   .filter((a): a is Assignee => a !== null);
+
         onValueChange(selectedIds);
       }}
       trigger={
-        <Button variant="outline" size="sm" className={className}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-[160px] [&]:!bg-transparent [&]:!border-[var(--box-accent)] [&]:!text-[var(--text-primary)] [&]:hover:!bg-white/20 [&]:hover:!text-white"
+        >
           {assigneeValue.length > 0 ? (
             <>
               <StackedInitials
