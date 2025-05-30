@@ -83,6 +83,14 @@ export const googleCalendar = pgTable("google_calendar", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const calendarEventKeywords = pgTable("calendar_event_keywords", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  keyword: text("keyword").notNull(),
+},
+  (table) => [unique("user_id_idx").on(table.userId, table.keyword)]
+);
+
 export const calendarEvents = pgTable("calendar_events", {
   id: text("id").primaryKey(), // '7ni1ktubh5s95dc86g2rer71d3'
   kind: text("kind"), // 'calendar#event'
@@ -277,6 +285,10 @@ export const userRelations = relations(users, ({ many, one }) => ({
     fields: [users.teamId],
     references: [teams.id],
   }),
+  calendarEventKeywords: one(calendarEventKeywords, {
+    fields: [users.id],
+    references: [calendarEventKeywords.userId],
+  }),
 }));
 
 export const teamRelations = relations(teams, ({ many }) => ({
@@ -469,6 +481,13 @@ export const loomRelations = relations(looms, ({ one }) => ({
 export const googleCalendarRelations = relations(googleCalendar, ({ one }) => ({
   user: one(users, {
     fields: [googleCalendar.userId],
+    references: [users.id],
+  }),
+}));
+
+export const calendarEventKeywordRelations = relations(calendarEventKeywords, ({ one }) => ({
+  user: one(users, {
+    fields: [calendarEventKeywords.userId],
     references: [users.id],
   }),
 }));

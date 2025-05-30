@@ -3,6 +3,7 @@ import Link from "next/link";
 import NewTask from "@/components/tasks/new-task";
 import { Settings } from "lucide-react";
 import { commonStyles } from "@/styles/common";
+import Image from "next/image";
 import {
   Sidebar,
   SidebarContent,
@@ -75,7 +76,12 @@ export async function AppSidebar() {
     <Sidebar className={commonStyles.sidebar.container} key={Date.now()}>
       <SidebarHeader className={commonStyles.sidebar.header}>
         <div className="p-4 flex items-center justify-between">
-          <h1 className="font-semibold text-white">Turbo</h1>
+          <img
+            src="https://n1v74cls2c.ufs.sh/f/XAC5NGVjIxRTYhUMGHSw8eLErn3Wl7d4y1oRp0IUNQMJtGT5"
+            alt="Turbo"
+            width="100"
+            height="100"
+          />
           <UserButton />
         </div>
 

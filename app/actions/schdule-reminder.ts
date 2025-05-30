@@ -3,6 +3,7 @@
 import { getUnixTime } from "date-fns";
 import { Client } from "@upstash/qstash";
 import { EventType } from "@/lib/google-calendar";
+import { getTrackingKeywords } from "./settings/calendar-event-tracking";
 
 // Initialize the Upstash Qstash client
 const qstash = new Client({
@@ -74,8 +75,10 @@ export async function cancelReminder(messageId: string) {
 
 // This schdulels a reminder specofic events like  a design review or kick off event
 export async function scheduleReminder(event: EventType) {
-  const eventKeyWords = ["design review", "kick off"];
-  const isRelevantEvent = eventKeyWords.some((keyword) =>
+  //This is a temporary solution to get the keywords from the database
+  //It isnt user specific yet
+  const keywords = await getTrackingKeywords();
+  const isRelevantEvent = keywords.some((keyword) =>
     event.summary.toLowerCase().includes(keyword)
   );
 

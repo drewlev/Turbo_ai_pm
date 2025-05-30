@@ -51,6 +51,7 @@ export interface EventType {
 }
 
 export async function getUserFromChannelId(channelId: string) {
+  console.log(`[getUserFromChannelId] Getting user from channel ID: ${channelId}`);
   const user = await db.query.googleCalendar.findFirst({
     where: eq(googleCalendar.channelId, channelId),
     with: {
