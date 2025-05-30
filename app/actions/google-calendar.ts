@@ -1,9 +1,10 @@
 "use server";
 import { v4 as uuidv4 } from "uuid";
-import { currentUser, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import db from "@/app/db";
 import { googleCalendar } from "@/app/db/schema";
 import { clerkIdToSerialId } from "@/app/actions/users";
+import { eq } from "drizzle-orm";
 
 interface WatchCalendarResponse {
   kind: string;
@@ -38,35 +39,31 @@ export async function getUserOauthAccessToken(
   return tokens;
 }
 
-export async function watchCalendar(): Promise<{
+export async function watchCalendar(clerkId: string): Promise<{
   watchResponse: WatchCalendarResponse;
   watchRecord: typeof googleCalendar.$inferSelect;
 }> {
-  console.log("[watchCalendar] Starting calendar watch setup");
+  console.log(
+    "[watchCalendar] Starting calendar watch setup for clerkId:",
+    clerkId
+  );
 
-  // Get the current authenticated user from Clerk
-  const clerkUser = await currentUser();
-  if (!clerkUser) {
-    console.error("[watchCalendar] No authenticated user found");
-    throw new Error("No authenticated user found");
+  if (!clerkId) {
+    console.error("[watchCalendar] No clerkId provided");
+    throw new Error("No clerkId provided");
   }
-  console.log(`[watchCalendar] Found user: ${clerkUser?.id}`);
 
-  const user = await clerkIdToSerialId(clerkUser.id);
-
-  if (!clerkUser) {
-    console.error("[watchCalendar] No authenticated user found");
-    throw new Error("No authenticated user found");
+  const user = await clerkIdToSerialId(clerkId);
+  if (!user) {
+    console.error("[watchCalendar] No user found for clerkId:", clerkId);
+    throw new Error("No user found for the provided clerkId");
   }
 
   // Get the OAuth access token using the recommended Clerk method
   const client = await clerkClient();
   console.log("[watchCalendar] Fetching OAuth tokens");
 
-  const tokens = await client.users.getUserOauthAccessToken(
-    clerkUser.id,
-    "google"
-  );
+  const tokens = await client.users.getUserOauthAccessToken(clerkId, "google");
 
   if (!tokens.data || tokens.data.length === 0) {
     console.error("[watchCalendar] No Google OAuth tokens found");
@@ -175,24 +172,35 @@ export async function stopWatchingCalendar(
     );
   }
 
-  // Get the current authenticated user
-  const user = await currentUser();
-  console.log(`[stopWatchingCalendar] Found user: ${user?.id}`);
+  // Find the calendar record using channelId
+  const calendar = await db.query.googleCalendar.findFirst({
+    where: eq(googleCalendar.channelId, channelId),
+    with: {
+      user: true,
+    },
+  });
 
-  if (!user) {
-    console.error("[stopWatchingCalendar] No authenticated user found");
-    throw new Error("No authenticated user found");
+  if (!calendar?.user?.clerkId) {
+    console.error(
+      "[stopWatchingCalendar] No calendar record or user found for channel:",
+      channelId
+    );
+    throw new Error(
+      "No calendar record or user found for the given channel ID"
+    );
   }
 
-  // Get the OAuth access token using Clerk client
-  const client = await clerkClient();
   console.log(
-    "[stopWatchingCalendar] Fetching OAuth tokens for user: ",
-    user.id
+    `[stopWatchingCalendar] Found user with clerkId: ${calendar.user.clerkId}`
   );
 
-  const tokens = await client.users.getUserOauthAccessToken(user.id, "google");
-  console.log("[stopWatchingCalendar] Tokens: ", tokens);
+  // Get the OAuth tokens for the user
+  const client = await clerkClient();
+  const tokens = await client.users.getUserOauthAccessToken(
+    calendar.user.clerkId,
+    "google"
+  );
+  console.log("[stopWatchingCalendar] Tokens retrieved successfully");
 
   if (!tokens.data || tokens.data.length === 0) {
     console.error("[stopWatchingCalendar] No Google OAuth tokens found");
@@ -250,16 +258,6 @@ export async function stopWatchingCalendar(
       }`
     );
   }
-
-  // Clear the user's calendar metadata
-  await client.users.updateUser(user.id, {
-    publicMetadata: {
-      ...user.publicMetadata,
-      calendarChannelId: null,
-      calendarResourceId: null,
-      calendarSyncToken: null,
-    },
-  });
 
   console.log("[stopWatchingCalendar] Successfully stopped watching calendar");
 }

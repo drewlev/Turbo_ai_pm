@@ -14,19 +14,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { Client, NewClient } from "@/app/types/project";
+import type { TransformedClient, NewClient } from "@/app/types/project";
 import { LINKEDIN_ICON_URL } from "@/app/constants/project";
 
 type ClientManagementProps = {
-  clients: Client[];
+  clients: TransformedClient[];
   isAddClientOpen: boolean;
   setIsAddClientOpen: (open: boolean) => void;
-  editingClient: Client | null;
-  setEditingClient: (client: Client | null) => void;
+  editingClient: TransformedClient | null;
+  setEditingClient: (client: TransformedClient | null) => void;
   newClient: NewClient;
   setNewClient: (client: NewClient) => void;
   onAddClient: (e: React.FormEvent) => void;
-  onEditClient: (clientId: string, data: Partial<Client>) => void;
+  onEditClient: (clientId: string, data: Partial<TransformedClient>) => void;
   onRemoveClient: (clientId: string) => void;
   isPending: boolean;
 };

@@ -1,15 +1,12 @@
 "use client";
 import { motion } from "framer-motion";
 import { Calendar, Slack } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   onboardUserCalendar,
   checkCalendarConnectionStatus,
 } from "@/app/actions/automations/calendar-watch-renewal";
-import {
-  onboardUserSlack,
-  checkSlackConnectionStatus,
-} from "@/app/actions/automations/slack-user-onboarding";
+import { checkSlackConnectionStatus } from "@/app/actions/automations/slack-user-onboarding";
 import { updateUserOnboardingStatus } from "@/app/actions/users";
 import { createSlackOAuthUrl } from "@/app/actions/slack";
 import { useRouter } from "next/navigation";
@@ -37,70 +34,7 @@ export default function OnboardingPage() {
     status: "loading",
   });
 
-  // Check calendar status
-  useEffect(() => {
-    const checkCalendarStatus = async () => {
-      if (!user || currentStep !== "calendar") return;
-
-      try {
-        const status = await checkCalendarConnectionStatus();
-        if (status.connected) {
-          setCalendarStatus({
-            status: "success",
-            message: "Calendar connected",
-            expiresAt: status.expiresAt,
-          });
-          // Move to Slack step after a short delay
-          setTimeout(() => setCurrentStep("slack"), 2000);
-        } else {
-          // Auto-connect if not connected
-          handleConnectCalendar();
-        }
-      } catch (err) {
-        setCalendarStatus({
-          status: "error",
-          message: "Failed to check calendar status",
-        });
-      }
-    };
-
-    checkCalendarStatus();
-  }, [user, currentStep]);
-
-  // Check Slack status
-  useEffect(() => {
-    const checkSlackStatus = async () => {
-      if (!user || currentStep !== "slack") return;
-
-      try {
-        const status = await checkSlackConnectionStatus();
-        console.log(status);
-        if (status.connected) {
-          setSlackStatus({
-            status: "success",
-            message: status.message,
-          });
-          // Move to complete step after a short delay
-          setTimeout(() => setCurrentStep("complete"), 2000);
-        }
-        if (status.status === "user-input-required") {
-          setSlackStatus({
-            status: "user-input-required",
-            message: status.message,
-          });
-        }
-      } catch (err) {
-        setSlackStatus({
-          status: "error",
-          message: "Failed to check Slack status",
-        });
-      }
-    };
-
-    checkSlackStatus();
-  }, [user, currentStep]);
-
-  const handleConnectCalendar = async () => {
+  const handleConnectCalendar = useCallback(async () => {
     if (!user) {
       setError("Please sign in to continue");
       return;
@@ -135,7 +69,72 @@ export default function OnboardingPage() {
     } finally {
       setIsConnecting(false);
     }
-  };
+  }, [user, setError, setIsConnecting, setCalendarStatus, setCurrentStep]);
+
+  // Check calendar status
+  useEffect(() => {
+    const checkCalendarStatus = async () => {
+      if (!user || currentStep !== "calendar") return;
+
+      try {
+        const status = await checkCalendarConnectionStatus();
+        if (status.connected) {
+          setCalendarStatus({
+            status: "success",
+            message: "Calendar connected",
+            expiresAt: status.expiresAt,
+          });
+          // Move to Slack step after a short delay
+          setTimeout(() => setCurrentStep("slack"), 2000);
+        } else {
+          // Auto-connect if not connected
+          handleConnectCalendar();
+        }
+      } catch (err) {
+        console.log("error", err);
+        setCalendarStatus({
+          status: "error",
+          message: "Failed to check calendar status",
+        });
+      }
+    };
+
+    checkCalendarStatus();
+  }, [user, currentStep, handleConnectCalendar]);
+
+  // Check Slack status
+  useEffect(() => {
+    const checkSlackStatus = async () => {
+      if (!user || currentStep !== "slack") return;
+
+      try {
+        const status = await checkSlackConnectionStatus();
+        console.log(status);
+        if (status.connected) {
+          setSlackStatus({
+            status: "success",
+            message: status.message,
+          });
+          // Move to complete step after a short delay
+          setTimeout(() => setCurrentStep("complete"), 2000);
+        }
+        if (status.status === "user-input-required") {
+          setSlackStatus({
+            status: "user-input-required",
+            message: status.message,
+          });
+        }
+      } catch (err) {
+        console.log("error", err);
+        setSlackStatus({
+          status: "error",
+          message: "Failed to check Slack status",
+        });
+      }
+    };
+
+    checkSlackStatus();
+  }, [user, currentStep]);
 
   const handleConnectSlack = async () => {
     if (!user) {
@@ -179,6 +178,7 @@ export default function OnboardingPage() {
       // Clear interval after 5 minutes (timeout)
       setTimeout(() => clearInterval(checkInterval), 5 * 60 * 1000);
     } catch (err) {
+      console.log("error", err);
       setSlackStatus({
         status: "error",
         message: "Failed to initiate Slack connection",
@@ -201,6 +201,7 @@ export default function OnboardingPage() {
         setError("Failed to complete onboarding. Please try again.");
       }
     } catch (err) {
+      console.log("error", err);
       setError("Failed to complete onboarding. Please try again.");
     }
   };
@@ -236,8 +237,8 @@ export default function OnboardingPage() {
         transition={{ delay: 0.4 }}
         className="mb-8 max-w-md text-gray-400"
       >
-        We'll help you stay on top of your design reviews and kick-off meetings
-        by connecting to your Google Calendar.
+        We&apos;ll help you stay on top of your design reviews and kick-off
+        meetings by connecting to your Google Calendar.
       </motion.p>
 
       <div className="flex flex-col items-center justify-center min-h-[200px] p-4">
@@ -273,7 +274,8 @@ export default function OnboardingPage() {
                 {calendarStatus.message || "Failed to connect Google Calendar"}
               </p>
               <p className="text-sm text-gray-400 mt-2">
-                Please ensure you're signed in to Google and grant permissions.
+                Please ensure you&apos;re signed in to Google and grant
+                permissions.
               </p>
               <motion.button
                 initial={{ opacity: 0 }}
@@ -350,8 +352,8 @@ export default function OnboardingPage() {
             <div className="text-lg font-semibold">
               <p>{slackStatus.message || "Failed to connect Slack"}</p>
               <p className="text-sm text-gray-400 mt-2">
-                Please ensure you're signed in to Slack and grant permissions to
-                the correct workspace.
+                Please ensure you&apos;re signed in to Slack and grant
+                permissions to the correct workspace.
               </p>
               <motion.button
                 initial={{ opacity: 0 }}
@@ -367,7 +369,8 @@ export default function OnboardingPage() {
             <div className="text-red-500 text-lg font-semibold">
               <p>✗ {slackStatus.message || "Failed to connect Slack"}</p>
               <p className="text-sm text-gray-400 mt-2">
-                Please ensure you're signed in to Slack and grant permissions.
+                Please ensure you&apos;re signed in to Slack and grant
+                permissions.
               </p>
               <motion.button
                 initial={{ opacity: 0 }}
@@ -423,8 +426,8 @@ export default function OnboardingPage() {
         transition={{ delay: 0.4 }}
         className="mb-8 max-w-md text-gray-400"
       >
-        Your calendar and Slack workspace are connected. You're ready to start
-        using Turbo Design.
+        Your calendar and Slack workspace are connected. You&apos;re ready to
+        start using Turbo Design.
       </motion.p>
 
       <motion.button

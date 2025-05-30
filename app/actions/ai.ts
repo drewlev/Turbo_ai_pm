@@ -68,6 +68,7 @@ export async function generateAIResponse<T>({
 
 //MEETING NOTES to tasks
 export async function meetingNotesToTasks(meetingNotes: string) {
+  console.log("meetingNotes", meetingNotes);
   const systemPrompt = `You are an AI assistant specialized in extracting tasks for a UX designer from meeting transcripts. Your entire response MUST be a JSON object containing a single key: 'tasks'. The value of 'tasks' must be a JSON array of objects. Each object in the array should have two keys: 'description' (string) for the task description, and 'priority' (string, e.g., 'high', 'medium', 'low').`;
 
   const response = await generateAIResponse<{
@@ -76,6 +77,8 @@ export async function meetingNotesToTasks(meetingNotes: string) {
     systemPrompt,
     userPrompt: `Here are the meeting notes:\n\n${meetingNotes}\n\nPlease provide a list of tasks for our UX designer based on these notes.`,
   });
+
+  console.log("response from meetingNotesToTasks", response);
 
   return response;
 }

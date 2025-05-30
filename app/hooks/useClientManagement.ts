@@ -6,15 +6,17 @@ import {
   removeClientFromProject,
   updateClient,
 } from "@/app/actions/projects";
-import type { Client, NewClient } from "@/app/types/project";
+import type { NewClient, TransformedClient } from "@/app/types/project";
 
 export function useClientManagement(
   projectId: number,
-  initialClients: Client[]
+  initialClients: TransformedClient[]
 ) {
-  const [clients, setClients] = useState<Client[]>(initialClients);
+  const [clients, setClients] = useState<TransformedClient[]>(initialClients);
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editingClient, setEditingClient] = useState<TransformedClient | null>(
+    null
+  );
   const [newClient, setNewClient] = useState<NewClient>({
     name: "",
     email: "",
@@ -40,14 +42,16 @@ export function useClientManagement(
           // Refresh client list
           const updatedClients = await getProjectClients(projectId);
           // Transform the database clients to match our UI client type
-          const transformedClients: Client[] = updatedClients.map((client) => ({
-            id: client.id.toString(),
-            name: client.name,
-            email: client.email,
-            role: client.role,
-            linkedinUrl: client.linkedinUrl,
-            avatar: "/placeholder.svg?height=40&width=40", // Default avatar
-          }));
+          const transformedClients: TransformedClient[] = updatedClients.map(
+            (client) => ({
+              id: client.id.toString(),
+              name: client.name,
+              email: client.email,
+              role: client.role,
+              linkedinUrl: client.linkedinUrl,
+              avatar: "/placeholder.svg?height=40&width=40", // Default avatar
+            })
+          );
           setClients(transformedClients);
           setIsAddClientOpen(false);
           setNewClient({ name: "", email: "", linkedinUrl: "", role: "" }); // Reset form
@@ -61,7 +65,10 @@ export function useClientManagement(
     });
   };
 
-  const handleEditClient = async (clientId: string, data: Partial<Client>) => {
+  const handleEditClient = async (
+    clientId: string,
+    data: Partial<TransformedClient>
+  ) => {
     startTransition(async () => {
       try {
         const result = await updateClient(Number(clientId), {
@@ -75,14 +82,16 @@ export function useClientManagement(
           toast.success("Client updated successfully");
           // Refresh client list
           const updatedClients = await getProjectClients(projectId);
-          const transformedClients: Client[] = updatedClients.map((client) => ({
-            id: client.id.toString(),
-            name: client.name,
-            email: client.email,
-            role: client.role,
-            linkedinUrl: client.linkedinUrl,
-            avatar: "/placeholder.svg?height=40&width=40",
-          }));
+          const transformedClients: TransformedClient[] = updatedClients.map(
+            (client) => ({
+              id: client.id.toString(),
+              name: client.name,
+              email: client.email,
+              role: client.role,
+              linkedinUrl: client.linkedinUrl,
+              avatar: "/placeholder.svg?height=40&width=40",
+            })
+          );
           setClients(transformedClients);
           setEditingClient(null);
           setIsAddClientOpen(false);

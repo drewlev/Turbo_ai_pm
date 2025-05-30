@@ -40,10 +40,10 @@ export async function publishQStashCron<T>(
   endpoint: string
 ) {
   try {
-    const response = await qstash.publishJSON({
-      url: qstashUrl + endpoint,
-      body: payload,
+    const response = await qstash.schedules.create({
       cron,
+      body: JSON.stringify(payload),
+      destination: qstashUrl + endpoint,
     });
     console.log("[QStash] Message published successfully:", response);
     return response;

@@ -74,6 +74,7 @@ export function DeliverablesFeed({
         toast.error(result.message);
       }
     } catch (error) {
+      console.error("Error saving transcript", error);
       toast.error("Failed to save transcript");
     }
   };

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import db from "@/app/db";
-import { users } from "@/app/db/schema";
 import { Webhook } from "svix";
+import { createUser } from "@/app/actions/users";
 
 // The webhook secret is set in the Clerk Dashboard
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET!;
@@ -57,12 +56,12 @@ export async function POST(request: Request) {
         const userToInsert = {
           clerkId: data.id as string,
           email: data.email_addresses[0].email_address as string,
-          // name: data.first_name as string,
+          name: (data.first_name + " " + data.last_name) as string,
           // password: data.password as string,
         };
         console.log("📝 Inserting user data:", userToInsert);
 
-        await db.insert(users).values(userToInsert);
+        await createUser(userToInsert);
         console.log("✅ User successfully inserted into database");
         break;
       }

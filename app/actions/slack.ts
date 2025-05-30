@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/app/db";
-import { slackInstallations, slackUsers, users } from "@/app/db/schema";
+import { slackInstallations, slackUsers } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkIdToSerialId } from "./users";
 import {
@@ -219,3 +219,10 @@ export const saveSlackInstall = async (
     };
   }
 };
+
+export async function getUserIdBySlackUserId(slackUserId: string) {
+  const slackUser = await db.query.slackUsers.findFirst({
+    where: eq(slackUsers.slackUserId, slackUserId),
+  });
+  return slackUser?.userId;
+}

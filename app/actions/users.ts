@@ -34,6 +34,13 @@ export async function clerkIdToSerialId(inputedClerkId?: string) {
   return user.id;
 }
 
+export async function serialIdToClerkId(serialId: number) {
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, serialId),
+  });
+  return user?.clerkId;
+}
+
 export const isUserOnboarded = cache(async (): Promise<boolean> => {
   const authData = await auth();
   if (!authData?.userId) {
@@ -90,4 +97,29 @@ export async function updateUserOnboardingStatus(onboarded: boolean) {
           : "Failed to update onboarding status",
     };
   }
+}
+
+// ===== create user =====
+
+export async function createUser(userToInsert: typeof users.$inferInsert) {
+  //TODO: dynamic teamId
+  await db.insert(users).values({ ...userToInsert, teamId: 1 });
+}
+
+export async function getTeamId() {
+  const authData = await auth();
+  if (!authData) {
+    throw new Error("Unauthorized");
+  }
+  const clerkId = authData.userId;  
+
+  if (!clerkId) {
+    throw new Error("Unauthorized");
+  }
+
+  const teamId = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  return teamId?.teamId;
 }

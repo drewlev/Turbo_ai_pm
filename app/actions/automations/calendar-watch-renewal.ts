@@ -3,7 +3,7 @@ import { and, eq, lt, gt } from "drizzle-orm";
 import db from "@/app/db";
 import { googleCalendar } from "@/app/db/schema";
 import { watchCalendar, stopWatchingCalendar } from "../google-calendar";
-import { publishQStashCron, publishQStashMessage } from "../schdule-reminder";
+import { publishQStashCron } from "../schdule-reminder";
 import { clerkIdToSerialId } from "../users";
 import { currentUser } from "@clerk/nextjs/server";
 
@@ -53,12 +53,12 @@ async function onboardUserCalendar() {
   console.log(`[onboardUserCalendar] Starting calendar onboarding for user`);
 
   try {
-    const user = await currentUser();
-    if (!user) {
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
       console.error("[onboardUserCalendar] No user found");
       return { success: false, error: "No user found" };
     }
-    const userId = await clerkIdToSerialId(user.id);
+    const userId = await clerkIdToSerialId(clerkUser.id);
 
     const existingWatch = await db.query.googleCalendar.findFirst({
       where: eq(googleCalendar.userId, userId),
@@ -74,7 +74,7 @@ async function onboardUserCalendar() {
     }
 
     // Create the initial watch
-    const { watchRecord } = await watchCalendar();
+    const { watchRecord } = await watchCalendar(clerkUser.id);
 
     // Schedule the weekly renewal
     await scheduleCalendarWatchRenewal(watchRecord);
@@ -106,29 +106,39 @@ async function onboardUserCalendar() {
  * Schedule a weekly renewal for a calendar watch
  * This is called during onboarding and by the renewal process
  */
-async function scheduleCalendarWatchRenewal(
+export async function scheduleCalendarWatchRenewal(
   watch: typeof googleCalendar.$inferSelect
 ) {
   console.log(
-    `[scheduleCalendarWatchRenewal] Scheduling weekly renewal for watch ${watch.id}`
+    `[scheduleCalendarWatchRenewal] Starting renewal scheduling for watch ${watch.id}`
   );
 
-  // Schedule the renewal with QStash to run weekly on Sunday at midnight
-  await publishQStashCron(
-    "0 0 * * 0", // Run at midnight every Sunday
-    {
-      eventId: `watch-renewal-${watch.id}`,
-      watchId: watch.id,
-      channelId: watch.channelId,
-      resourceId: watch.resourceId,
-      userId: watch.userId ?? undefined,
-    },
-    "/calendar-watch"
-  );
+  try {
+    // Schedule the renewal with QStash to run weekly on Sunday at midnight
+    const response = await publishQStashCron(
+      "0 0 * * 0", // QStash shorthand for weekly execution
+      {
+        eventId: `watch-renewal-${watch.id}`,
+        watchId: watch.id,
+        channelId: watch.channelId,
+        resourceId: watch.resourceId,
+        userId: watch.userId ?? undefined,
+      },
+      "/calendar-watch"
+    );
 
-  console.log(
-    `[scheduleCalendarWatchRenewal] Successfully scheduled weekly renewal for watch ${watch.id}`
-  );
+    console.log(
+      `[scheduleCalendarWatchRenewal] Successfully scheduled weekly renewal for watch ${watch.id}`,
+      { response }
+    );
+    return response;
+  } catch (error) {
+    console.error(
+      `[scheduleCalendarWatchRenewal] Failed to schedule renewal for watch ${watch.id}:`,
+      error
+    );
+    throw error;
+  }
 }
 
 /**
@@ -137,7 +147,7 @@ async function scheduleCalendarWatchRenewal(
  */
 async function processCalendarWatchRenewal(watchId: number) {
   console.log(
-    `[processCalendarWatchRenewal] Processing renewal for watch ${watchId}`
+    `[processCalendarWatchRenewal] Starting renewal process for watch ${watchId}`
   );
 
   const watch = await db.query.googleCalendar.findFirst({
@@ -149,30 +159,49 @@ async function processCalendarWatchRenewal(watchId: number) {
 
   if (!watch) {
     console.error(`[processCalendarWatchRenewal] Watch ${watchId} not found`);
-    return;
+    throw new Error(`Watch ${watchId} not found`);
   }
+
+  if (!watch.user?.clerkId) {
+    console.error(
+      `[processCalendarWatchRenewal] No clerkId found for watch ${watchId}`
+    );
+    throw new Error(`No clerkId found for watch ${watchId}`);
+  }
+
+  console.log(
+    `[processCalendarWatchRenewal] Found watch for user ${watch.userId}`,
+    { watch }
+  );
 
   try {
     // Stop the existing watch
+    console.log(
+      `[processCalendarWatchRenewal] Stopping existing watch for channel ${watch.channelId}`
+    );
     await stopWatchingCalendar(watch.channelId, watch.resourceId);
 
     // Start a new watch
-    const newWatch = await watchCalendar();
+    console.log(
+      `[processCalendarWatchRenewal] Starting new watch for user ${watch.userId}`
+    );
+    const newWatch = await watchCalendar(watch.user.clerkId);
 
-    // Update the watch record with new details
-    await db
-      .update(googleCalendar)
-      .set({
-        channelId: newWatch.watchResponse.channelId,
-        resourceId: newWatch.watchResponse.resourceId,
-        resourceUri: newWatch.watchResponse.resourceUri,
-        expiration: new Date(Number(newWatch.watchResponse.expiration)),
-      })
-      .where(eq(googleCalendar.id, watch.id));
+    // Delete the old watch record
+    console.log(
+      `[processCalendarWatchRenewal] Deleting old watch record ${watchId}`
+    );
+    await db.delete(googleCalendar).where(eq(googleCalendar.id, watch.id));
 
     console.log(
-      `[processCalendarWatchRenewal] Successfully renewed watch ${watchId}`
+      `[processCalendarWatchRenewal] Successfully renewed watch ${watchId}`,
+      { newWatch }
     );
+
+    // Schedule the next renewal for the new watch
+    await scheduleCalendarWatchRenewal(newWatch.watchRecord);
+
+    return newWatch.watchRecord;
   } catch (error) {
     console.error(
       `[processCalendarWatchRenewal] Error renewing watch ${watchId}:`,

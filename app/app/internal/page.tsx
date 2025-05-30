@@ -3,10 +3,8 @@ import { importFirefliesTranscript } from "@/lib/fireflies";
 import { Button } from "@/components/ui/button";
 import { createSlackOAuthUrl, sendMessageToSlack } from "@/app/actions/slack";
 import { redirect } from "next/navigation";
-import {
-  stopWatchingCalendar,
-  watchCalendar,
-} from "@/app/actions/google-calendar";
+import { stopWatchingCalendar } from "@/app/actions/google-calendar";
+import { publishQStashCron } from "@/app/actions/schdule-reminder";
 
 export default function InternalPage() {
   return (
@@ -40,20 +38,30 @@ export default function InternalPage() {
       </Button>
       <Button
         onClick={async () => {
-          await watchCalendar();
-        }}
-      >
-        watch calendar
-      </Button>
-      <Button
-        onClick={async () => {
           await stopWatchingCalendar(
-            "4341a535-7da8-4c9a-87cb-30102556af43",
+            "4948ef7b-fca9-4531-89b5-18f03e09261e",
             "rUdMRR7OsWosSimA50Whpnvq1Lw"
           );
         }}
       >
         stopWatchingCalendar
+      </Button>
+      <Button
+        onClick={async () => {
+          await publishQStashCron(
+            "0 0 * * 0",
+            {
+              eventId: "calendar-watch-renewal",
+              watchId: 1,
+              channelId: "test",
+              resourceId: "test",
+              userId: 1,
+            },
+            "/test"
+          );
+        }}
+      >
+        scheduleCalendarWatchRenewal
       </Button>
     </div>
   );

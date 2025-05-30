@@ -1,9 +1,9 @@
 "use server";
 
-import { LayoutGrid, List } from "lucide-react";
+// import { LayoutGrid, List } from "lucide-react";
 import { TaskTableClient } from "@/components/tasks/task-table-client";
 import { KanbanBoard } from "@/components/kanban-board";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { getTasks } from "@/app/actions/tasks";
 import { transformTasksForUI } from "@/app/types/task";
 

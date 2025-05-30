@@ -95,9 +95,13 @@ export async function getTasksByProjectId(
   }
 }
 
-export async function getAvailableAssignees() {
+export async function getAvailableAssignees(teamId: number) {
   try {
-    return await db.query.users.findMany({});
+    const assignees = await db.query.users.findMany({
+      where: eq(users.teamId, teamId),
+    });
+    console.log("assignees", assignees);
+    return assignees;
   } catch (error) {
     console.error("Error fetching available assignees:", error);
     throw new Error("Failed to fetch available assignees");
@@ -247,5 +251,20 @@ export async function createTaskAndAssign(
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
     };
+  }
+}
+
+// get task by userId
+export async function getTasksByUserId(userId: number) {
+  try {
+    const tasksByUser = await db.query.taskAssignees.findMany({
+      where: eq(taskAssignees.userId, userId),
+      with: {
+        task: true,
+      },
+    });
+    return tasksByUser;
+  } catch (error) {
+    console.error("Error fetching tasks by user:", error);
   }
 }

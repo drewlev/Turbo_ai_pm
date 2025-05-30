@@ -62,6 +62,8 @@ export default function FirefliesSettings({
     }
   };
 
+  const webhookUrl =
+    process.env.NEXT_PUBLIC_APP_URL + "/api/fireflies/" + webhookId;
   return (
     <div className="border border-[var(--border-dark)] rounded-lg p-4 bg-[var(--background-light)]">
       <h2 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">
@@ -120,14 +122,14 @@ export default function FirefliesSettings({
           <div className="bg-[#2a2a2a] p-4 rounded-lg space-y-4">
             <div className="flex items-center justify-between">
               <code className="text-sm text-gray-300 break-all">
-                {process.env.NEXT_PUBLIC_APP_URL}/{webhookId}
+                {webhookUrl}
               </code>
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 hover:bg-[#3a3a3a]"
                 onClick={() =>
-                  copyToClipboard(process.env.NEXT_PUBLIC_APP_URL + "/uri")
+                  copyToClipboard(webhookUrl)
                 }
               >
                 {copied ? (

@@ -2,12 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle } from "lucide-react";
-import type { ProjectInfo } from "@/app/types/project";
-import type { Client } from "@/app/types/project";
+import type { ProjectInfo, TransformedClient } from "@/app/types/project";
 
 type ProjectSetupProgressProps = {
   projectInfo: ProjectInfo;
-  clients: Client[];
+  clients: TransformedClient[];
   onActivateProject: () => void;
   isPending: boolean;
   savedProjectInfo: {
@@ -38,7 +37,7 @@ const REQUIRED_STEPS = [
   {
     id: "clients",
     label: "Key Clients",
-    isComplete: (_: any, clients: Client[]) => clients.length > 0,
+    isComplete: (_: any, clients: TransformedClient[]) => clients.length > 0,
   },
 ];
 
