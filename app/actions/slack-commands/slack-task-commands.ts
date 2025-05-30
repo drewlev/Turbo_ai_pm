@@ -8,4 +8,5 @@ export async function getTasksForSlackUser(slackUserId: string) {
   }
   const tasks = await getTasksByUserId(userId);
   return tasks;
+  
 }
