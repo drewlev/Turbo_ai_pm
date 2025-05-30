@@ -1,6 +1,8 @@
 import { getTasksForSlackUser } from "@/app/actions/slack-commands/slack-task-commands";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 interface SlackCommandPayload {
   token: string;
   team_id: string;
